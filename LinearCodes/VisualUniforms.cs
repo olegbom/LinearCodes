@@ -10,6 +10,22 @@ namespace LinearCodes
         public Matrix4 ModelMatrix { get; private set; }
         public Color4 Color;
 
+        #region Z
+        private float _z;
+        public float Z
+        {
+            get { return _z; }
+            set
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (_z == value) return;
+                _z = value;
+                _translateMatrix = Matrix4.CreateTranslation(_translate.X, _translate.Y, _z);
+                UpdateMatrix();
+            }
+        }
+        #endregion
+
         #region Translate
         private Vector2 _translate;
         public Vector2 Translate
@@ -19,7 +35,7 @@ namespace LinearCodes
             {
                 if (_translate == value) return;
                 _translate = value;
-                _translateMatrix = Matrix4.CreateTranslation(value.X, value.Y, 0);
+                _translateMatrix = Matrix4.CreateTranslation(_translate.X, _translate.Y, _z);
                 UpdateMatrix();
             }
         }

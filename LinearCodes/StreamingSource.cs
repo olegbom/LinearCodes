@@ -35,18 +35,22 @@ namespace LinearCodes
             {
                 var bit = message[i];
                 var glyph = new Glyph7x5(bit == 0?'0':'1',
-                    new Vector2(position.X + Delta * i, position.Y + Delta * 0.4f),
+                    new Vector2(position.X + Delta * i+5, position.Y + 5),
                     Shader);
                 BitMessage.Add(glyph);
                 Visuals.Add(glyph);
             }
-            Shape = Polyline(new[]
+            var vertices = new List<Vector4>();
+            vertices.AddRange(Polyline(new[]
             {
-                new Vector2(Delta*message.Count, 0),
+                new Vector2(Delta*(message.Count+1), 0),
                 new Vector2(0,0),
                 new Vector2(0, Delta*2),
                 new Vector2(Delta*message.Count, Delta*2)
-            }, 2);
+            }, 2));
+            vertices.AddRange(Circle(
+                new Vector2(Delta*(message.Count+1), 0),3,15,0.2f));
+            Shape = vertices.ToArray();
             InitBuffers();
         }
 
@@ -57,14 +61,14 @@ namespace LinearCodes
                 BitMessage[i].Animation("Position", BitMessage[i+1].Position, 500);
             }
             var last = BitMessage.Last();
-            last.Animation("Position", 
-                BitMessage.Last().Position + new Vector2(Delta,0),500,() =>
+            last.Animation("Position",
+                Position + new Vector2(Delta * (message.Count + 1) + 5,5),500,() =>
                 {
                     EndAnimation(last, 0);
                     BitMessage.Remove(last);
                     
                     var glyph = new Glyph7x5( '0',
-                        new Vector2(Position.X, Position.Y + Delta * 0.4f),
+                        new Vector2(Position.X+ 5, Position.Y +5),
                         Shader);
                     BitMessage.Insert(0, glyph);
                     Visuals.Add(glyph);

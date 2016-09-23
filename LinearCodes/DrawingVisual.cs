@@ -13,7 +13,8 @@ namespace LinearCodes
     {
         public Vector4[] Shape { get; set; }
         public Shader Shader { get; }
-        protected int vId, vao;
+        public int vId { get; protected set; }
+        public int vao { get; protected set; }
 
         public List<VisualUniforms> InstasingList = new List<VisualUniforms>();
 

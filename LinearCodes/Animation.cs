@@ -323,6 +323,34 @@ namespace LinearCodes
             protected override string Name => _field.Name;
         }
 
+
+
+
+        public static void PathAnimation<T>(this object o, string name, List<T> path, float speed, Func<T, T, float> lenghtFunc, Action act = null)
+        {
+            if (path.Count == 1)
+            {
+                Console.WriteLine($"{o} {name}. Точек пути должно быть больше одного");
+                return;
+            }
+
+            o.PathAnimationRecuse(name, path, 1, speed, lenghtFunc, act);
+        }
+
+        private static void PathAnimationRecuse<T>(this object o, string name, List<T> path, int segment, float speed, Func<T, T, float> lenghtFunc, Action act = null)
+        {
+            if (segment == path.Count)
+            {
+                act?.Invoke();
+                return;
+            }
+
+            var lenght = (uint)(lenghtFunc(path[segment], path[segment - 1]) * speed);
+            o.Animation(name, path[segment], lenght, () =>
+            {
+                PathAnimationRecuse(o, name, path, segment + 1, speed, lenghtFunc, act);
+            });
+        }
     }
 
 

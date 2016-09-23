@@ -27,33 +27,38 @@ namespace LinearCodes
         public void CreateBuffers(Vector2 position)
         {
             Position = position;
-            Shape = Polyline(new[]
+            var vertices = new List<Vector4>();
+            vertices.AddRange(Polyline(new[]
             {
-                new Vector2(0,0),
-                new Vector2(Delta*7, 0),
-                new Vector2(Delta*7, Delta*2),
-                new Vector2(0, Delta*2)
-            }, 2);
+                new Vector2(0, 0),
+                new Vector2(Delta*8, 0),
+                new Vector2(Delta*8, Delta*2),
+                new Vector2(Delta, Delta*2)
+            }, 2));
+            vertices.AddRange(Circle(new Vector2(0,0),3, 15,0.2f));
+            Shape = vertices.ToArray();
             InitBuffers();
         }
 
         protected override void StartAnimation()
         {
-            Bits[0].Animation("Position", Position + new Vector2(5,5), 500);
+            Bits[0].Animation("Position", Position + new Vector2(5+Delta,5), 200);
 
             BitMessage.Add(Bits[0]);
             Bits[0] = null;
             for (int i = 0; i < BitMessage.Count-1; i++)
             {
                 BitMessage[i].Animation("Position",Position 
-                    + new Vector2(Delta*(BitMessage.Count - 1 - i) + 5,5), 500);
+                    + new Vector2(Delta*(BitMessage.Count - i) + 5,5), 200);
+                
             }
         }
+
 
         public override Vector2 InputPosition(int num)
         {
             if (num >= InCount) throw new IndexOutOfRangeException();
-            return Position - new Vector2(Delta, 0);
+            return Position;
         }
 
         public override Vector2 OutputPosition(int num)

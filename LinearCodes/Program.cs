@@ -44,7 +44,7 @@ namespace LinearCodes
 
 
             Shader = new Shader("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
-            InseparableCode = new InseparableCode(new[]{ true, true, true, true} ,Shader);
+            InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} ,Shader);
             //LinearMachine =new MatrixToVisual(new[,]
             //{
             //    {true,  true,  true, },

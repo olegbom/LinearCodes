@@ -20,6 +20,10 @@ namespace LinearCodes
         public bool Up = true;
         public bool Down = false;
 
+        private Glyph7x5 GlyphPlus;
+        private Glyph7x5 GlyphEqual;
+        private Glyph7x5 GlyphResult;
+
         public StreamingSummator(Shader shader, List<DrawingVisual> visuals, int inCount) : base(shader, visuals, inCount, 1)
         {
             InstasingList.Add(new VisualUniforms(Color4.Black));
@@ -99,49 +103,80 @@ namespace LinearCodes
 
             Shape = vertices.ToArray();
             InitBuffers();
+
+
+           
+
+            GlyphPlus = new Glyph7x5(' ',Position + new Vector2(Delta*1, -5), Shader);
+            Visuals.Add(GlyphPlus);
+
+            GlyphEqual = new Glyph7x5(' ', Position + new Vector2(Delta * 3, -5), Shader);
+            Visuals.Add(GlyphEqual);
+            
         }
 
         protected override void StartAnimation()
         {
-            Bits[0].Animation("Position",Position 
-                + new Vector2(Delta*4.25f, Delta*2.25f), 1000, () =>
-            {
-                EndAnimation(Bits[0], 0);
-                Bits[0] = null;
-            });
+            GlyphResult = new Glyph7x5(' ', Position + new Vector2(Delta * 4, -5),Shader);
+            Visuals.Add(GlyphResult);
 
-            Bits[0].Char = Bits.Count(x => x.Char == '1') % 2 == 1? '1': '0';
+            Bits[0].Animation("Position",Position - new Vector2(0, 5), 500, () =>
+            {
+                GlyphResult.Char = Bits.Count(x => x.Char == '1')%2 == 1 ? '1' : '0';
+                GlyphResult.Animation("Position", GlyphResult.Position, 400, () =>
+                {
+                    GlyphPlus.Char = ' ';
+                    GlyphEqual.Char = ' ';
+                    for (int i = 0; i < Bits.Length; i++)
+                    {
+                        var localI = i;
+                        Bits[localI].Animation("Position", Bits[localI].Position, 200, () =>
+                        {
+                            Visuals.Remove(Bits[localI]);
+                            Bits[localI] = null;
+                        });
+                        Bits[i].Char = ' ';
+                    }
+                    GlyphResult.Animation("Position", Position + new Vector2(Delta*4+5, Delta*2 + 5), 200, () =>
+                    {
+                        EndAnimation(GlyphResult, 0);
+                        GlyphResult = null;
+                    });
+                });
+                
+                
+            });
             
             for (int i = 1; i < Bits.Length; i++)
             {
 
                 int localI = i;
                 Bits[localI].Animation("Position", Position
-                + new Vector2(Delta * 2.25f, Delta * 2.25f), 500, () =>
-                {
-                    Visuals.Remove(Bits[localI]);
-                    Bits[localI] = null;
-                });
+                + new Vector2(Delta * 2, -5), 500);
             }
-            
+            GlyphPlus.Char = '+';
+            GlyphEqual.Char = '=';
+
+
         }
 
         public override Vector2 InputPosition(int num)
         {
             if (num >= InCount) throw new IndexOutOfRangeException();
-            if(num == 0)
-                return Position + new Vector2(0, Delta*2);
-            if(num == 1)
+            switch (num)
             {
-                if(Up)
-                    return Position + new Vector2(Delta*2, Delta * 4);
-                else if(Down)
-                    return Position + new Vector2(Delta * 2, 0);
-            }
-            if (num == 2)
-            {
-                if (Up && Down)
-                    return Position + new Vector2(Delta * 2, 0);
+                case 0:
+                    return Position + new Vector2(0, Delta*2);
+                case 1:
+                    if(Up)
+                        return Position + new Vector2(Delta*2, Delta * 4);
+                    if(Down)
+                        return Position + new Vector2(Delta * 2, 0);
+                    break;
+                case 2:
+                    if (Up && Down)
+                        return Position + new Vector2(Delta * 2, 0);
+                    break;
             }
             return Position;
         }

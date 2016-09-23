@@ -21,7 +21,7 @@ namespace LinearCodes
     public class StreamingSplitter: StreamingVisual
     {
         public float PointSize = 4.0f;
-        public float Z = 0.0f;
+        public float Z = 0.2f;
 
         public Glyph7x5 CloneBit;
 
@@ -64,14 +64,15 @@ namespace LinearCodes
             CloneBit = new Glyph7x5(Bits[0].Char, Bits[0].Position, Shader);
             CloneBit.InstasingList[0].Color = Color4.Black;
             Visuals.Add(CloneBit);
-          //  CloneBit.Animation("Position", Bit.Position - new Vector2(0,20),400, () =>
-          // {
 
+           
+            //CloneBit.Animation("Position", CloneBit.Position,400, () =>
+            //{
             EndAnimation(Bits[0], 0);
-            Bits[0] = null;
-            EndAnimation(CloneBit, 1);
-            CloneBit = null;
-            // });
+                Bits[0] = null;
+                EndAnimation(CloneBit, 1);
+                CloneBit = null;
+            //});
         }
 
 
