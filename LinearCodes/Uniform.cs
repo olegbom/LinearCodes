@@ -25,7 +25,7 @@ namespace LinearCodes
             set
             {
                 _value = value;
-                GL.UseProgram(Shader.ProgrammId);
+                GL.UseProgram(Shader.ProgramId);
                 _valueSetAction(Id, value);
             }
             get { return _value; }
@@ -37,7 +37,7 @@ namespace LinearCodes
             Name = name;
             Shader = shader;
 
-            Id = GL.GetUniformLocation(shader.ProgrammId, name);
+            Id = GL.GetUniformLocation(shader.ProgramId, name);
         }
     }
 }

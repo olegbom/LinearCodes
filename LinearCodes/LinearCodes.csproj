@@ -64,11 +64,12 @@
     <Compile Include="Button.cs" />
     <Compile Include="DigitalComponent.cs" />
     <Compile Include="Edge.cs" />
+    <Compile Include="Field.cs" />
     <Compile Include="Glyph7x5.cs" />
-    <Compile Include="InOutPins.cs" />
     <Compile Include="InseparableCode.cs" />
     <Compile Include="MatrixToVisual.cs" />
-    <Compile Include="Register.cs" />
+    <Compile Include="RadialMenu.cs" />
+    <Compile Include="SimpleShader.cs" />
     <Compile Include="StreamingReceiver.cs" />
     <Compile Include="StreamingRegister.cs" />
     <Compile Include="StreamingSource.cs" />
@@ -76,8 +77,6 @@
     <Compile Include="StreamingSummator.cs" />
     <Compile Include="StreamingVisual.cs" />
     <Compile Include="StreamingWire.cs" />
-    <Compile Include="Sumator.cs" />
-    <Compile Include="TriangularField.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="DrawingVisual.cs" />
     <Compile Include="Program.cs" />
@@ -85,6 +84,7 @@
     <Compile Include="Shader.cs" />
     <Compile Include="ShaderStatic.cs" />
     <Compile Include="Uniform.cs" />
+    <Compile Include="VisualObject.cs" />
     <Compile Include="VisualUniforms.cs" />
     <Compile Include="Wire.cs" />
   </ItemGroup>

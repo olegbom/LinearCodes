@@ -11,80 +11,72 @@ namespace LinearCodes
 {
     public class StreamingSource: StreamingVisual
     {
-        public List<int> message { get; } = new List<int>();
-        public Vector2 Position
-        {
-            get { return InstasingList[0].Translate; }
-            set { InstasingList[0].Translate = value; }
-        }
 
-        public float Delta = 20;
 
-        public StreamingSource(Shader shader, List<DrawingVisual> visuals) 
-            : base(shader, visuals, 0, 1)
-        {
-            InstasingList.Add(new VisualUniforms(Color4.Black));
-        }
-
+        public int[] Message { get; }
         public List<Glyph7x5> BitMessage { get; } = new List<Glyph7x5>();
 
-        public void CreateBuffers(Vector2 position)
+        public float Delta = 10;
+
+        public StreamingSource(int[] message, SimpleShader simpleShader) 
+            : base(simpleShader,  0, 1)
         {
-            Position = position;
-            for (int i = 0; i < message.Count; i++)
+            Message = message;
+            InstasingList.Add(new VisualUniforms(Color4.Black));
+            for (int i = 0; i < Message.Length; i++)
             {
                 var bit = message[i];
                 var glyph = new Glyph7x5(bit == 0?'0':'1',
-                    new Vector2(position.X + Delta * i+5, position.Y + 5),
-                    Shader);
+                    new Vector2(Delta * i+4, 2),
+                    SimpleShader);
                 BitMessage.Add(glyph);
-                Visuals.Add(glyph);
+                Childrens.Add(glyph);
             }
             var vertices = new List<Vector4>();
             vertices.AddRange(Polyline(new[]
             {
-                new Vector2(Delta*(message.Count+1), 0),
-                new Vector2(0,0),
-                new Vector2(0, Delta*2),
-                new Vector2(Delta*message.Count, Delta*2)
+                new Vector2(Delta*(Message.Length+1), 0),
+                new Vector2(-1,0),
+                new Vector2(-1, Delta*2),
+                new Vector2(Delta*Message.Length, Delta*2)
             }, 2));
             vertices.AddRange(Circle(
-                new Vector2(Delta*(message.Count+1), 0),3,15,0.2f));
+                new Vector2(Delta*(Message.Length + 1), 0),3,15,0.2f));
             Shape = vertices.ToArray();
-            InitBuffers();
+
         }
 
         protected override void StartAnimation()
         {
             for (int i = 0; i < BitMessage.Count-1; i++)
             {
-                BitMessage[i].Animation("Position", BitMessage[i+1].Position, 500);
+                BitMessage[i].Animation("Translate", BitMessage[i+1].Translate, 500);
             }
             var last = BitMessage.Last();
-            last.Animation("Position",
-                Position + new Vector2(Delta * (message.Count + 1) + 5,5),500,() =>
+            last.Animation("Translate",
+                new Vector2(Delta * (Message.Length + 1) + 1,2),500,() =>
                 {
                     EndAnimation(last, 0);
                     BitMessage.Remove(last);
                     
                     var glyph = new Glyph7x5( '0',
-                        new Vector2(Position.X+ 5, Position.Y +5),
-                        Shader);
+                        new Vector2(4, 2),
+                        SimpleShader);
                     BitMessage.Insert(0, glyph);
-                    Visuals.Add(glyph);
+                    Childrens.Add(glyph);
                 });
         }
 
         public override Vector2 InputPosition(int num)
         {
             if (num >= InCount) throw new IndexOutOfRangeException();
-            return Position;
+            return Translate;
         }
 
         public override Vector2 OutputPosition(int num)
         {
             if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Position + new Vector2(Delta * (message.Count + 1), 0);
+            return Translate + new Vector2(Delta * (Message.Length + 1), 0);
         }
     }
 }

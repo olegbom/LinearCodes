@@ -1,6 +1,8 @@
 ﻿using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,77 +11,130 @@ using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
 {
-    public class DrawingVisual
+    public class DrawingVisual: VisualObject, IDisposable
     {
-        public Vector4[] Shape { get; set; }
-        public Shader Shader { get; }
-        public int vId { get; protected set; }
-        public int vao { get; protected set; }
+        public SimpleShader SimpleShader { get; }
+        public int vId { get; }
+        public int vao { get; }
 
-        public List<VisualUniforms> InstasingList = new List<VisualUniforms>();
+        private Vector4[] _shape;
 
-        private Uniform<Matrix4> _modelMatrix;
-        private Uniform<Color4> _uniformColor;
-
-        public bool IsModelMatrixTranslate = false;
-        public Matrix4 ModelMatrixTranslate = Matrix4.Identity;
-
-        public DrawingVisual(int count, Shader shader)
+        public Vector4[] Shape
         {
-            Shape = new Vector4[count];
-            Shader = shader;
-            _modelMatrix = shader.GetUniformMatrix4("modelMatrix");
-            _uniformColor = shader.GetUniformColor4("color");
+            get{ return _shape;}
+            set
+            {
+                _shape = value;
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
+                var size = (IntPtr)(Vector4.SizeInBytes * _shape.Length);
+                GL.BufferData(BufferTarget.ArrayBuffer, size, _shape, BufferUsageHint.StreamDraw);
+            }
         }
 
-        public void InitBuffers()
-        {
-            vId = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
-            var size = (IntPtr)(Vector4.SizeInBytes * Shape.Length);
-            GL.BufferData(BufferTarget.ArrayBuffer, size, Shape, BufferUsageHint.StaticDraw);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        public bool IsVisible = true;
 
+        public ObservableCollection<VisualUniforms> InstasingList { get; }= new ObservableCollection<VisualUniforms>();
+        public ObservableCollection<DrawingVisual> Childrens { get; } = new ObservableCollection<DrawingVisual>();
+        private Matrix4 _modelMatrix = Matrix4.Identity;
+        public override Matrix4 ModelMatrix
+        {
+            get { return _modelMatrix; }
+            protected set
+            {
+                _modelMatrix = value;
+                foreach (var visualUniformse in InstasingList)
+                    visualUniformse.ParentModelMatrix4 = _modelMatrix;
+                
+                foreach (var drawingVisual in Childrens)
+                    drawingVisual.ParentModelMatrix4 = _modelMatrix;
+                
+            }
+        }
+
+        public DrawingVisual(SimpleShader simpleShader)
+        {
+            SimpleShader = simpleShader;
+            InstasingList.CollectionChanged += (s, e) =>
+            {
+                if (e.NewItems == null) return;
+                foreach (VisualUniforms visualUniformse in e.NewItems)
+                    visualUniformse.ParentModelMatrix4 = _modelMatrix;
+            };
+
+            Childrens.CollectionChanged += (s, e) =>
+            {
+                if (e.NewItems == null) return;
+                foreach (DrawingVisual drawingVisual in e.NewItems)
+                    drawingVisual.ParentModelMatrix4 = _modelMatrix;
+            };
+
+            vId = GL.GenBuffer();
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
 
-            GL.UseProgram(Shader.ProgrammId);
+            GL.UseProgram(SimpleShader.ProgramId);
 
-            var vertexPos = Shader.GetAttribLocation("position");
-
+            var vertexPos = SimpleShader.GetAttribLocation("position");
             GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
-
             GL.VertexAttribPointer(vertexPos, 4, VertexAttribPointerType.Float, false, Vector4.SizeInBytes, IntPtr.Zero);
             GL.EnableVertexAttribArray(vertexPos);
         }
 
+
+
+        // TODO : Должно частично обновлять данные
+        public void UpdateData(int offset, Vector4[] newData)
+        {
+            if (offset + newData.Length <= _shape.Length)
+            {
+                for (int i = 0; i < newData.Length; i++)
+                    _shape[i + offset] = newData[i];
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
+                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(Vector4.SizeInBytes* offset), Vector4.SizeInBytes * newData.Length, _shape);
+            }
+            else throw new Exception("Превышение размера массива Shape");
+        }
+
         public void Bind()
         {
-            GL.UseProgram(Shader.ProgrammId);
+            GL.UseProgram(SimpleShader.ProgramId);
             GL.BindVertexArray(vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
         }
 
         public void Draw()
         {
+            if (!IsVisible) return;
+
             Bind();
-            if(IsModelMatrixTranslate)
-                foreach (var visualUniform in InstasingList)
-                {
-                    _modelMatrix.Value = ModelMatrixTranslate*visualUniform.ModelMatrix;
-                    _uniformColor.Value = visualUniform.Color;
-                    GL.DrawArrays(PrimitiveType.TriangleStrip, 0, Shape.Length);
-                }
-            else
-                foreach (var visualUniform in InstasingList)
-                {
-                    _modelMatrix.Value = visualUniform.ModelMatrix;
-                    _uniformColor.Value = visualUniform.Color;
-                    GL.DrawArrays(PrimitiveType.TriangleStrip, 0, Shape.Length);
-                }
             
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            foreach (var visualUniform in InstasingList)
+            {
+                SimpleShader.UniformModelMatrix.Value = visualUniform.ModelMatrix;
+                SimpleShader.UniformColor.Value = visualUniform.Color;
+                GL.DrawArrays(PrimitiveType.TriangleStrip, 0, _shape.Length);
+            }
+
+            foreach (var children in Childrens)
+                children.Draw();
+            
         }
+
+        public void Dispose()
+        {
+            GL.DeleteBuffer(vId);
+            GL.DeleteVertexArray(vao);
+            _shape = null;
+            InstasingList.Clear();
+            foreach (var visuals in Childrens)
+            {
+                visuals.Dispose();
+            }
+            Childrens.Clear();
+        }
+
+        #region Static
 
         public static Vector4[] Line(float x1, float y1, float x2, float y2,
              float thickness = 1.0f, float z = 0.0f)
@@ -165,6 +220,35 @@ namespace LinearCodes
 
             return result;
         }
+
+        public static Vector4[] Sector(Vector2 center, float r, float angleStart, float angleStop,
+            float thickness = 1.0f, int resolution = 30, float z = 0.0f)
+        {
+            if (resolution < 3) return new Vector4[0];
+
+            var count = (resolution + 2) * 2;
+            var result = new Vector4[count];
+            var halfT = thickness / 2;
+
+            var r0 = r - halfT;
+            var r1 = r + halfT;
+
+            for (int i = 0; i < resolution+1; i++)
+            {
+                var arg = (float)i / resolution * (angleStop - angleStart) + angleStart;
+                var sin = (float)Math.Sin(arg);
+                var cos = (float)Math.Cos(arg);
+
+                var point0 = center + new Vector2(r1 * cos, r1 * sin);
+                var point1 = center + new Vector2(r0 * cos, r0 * sin);
+                result[1 + i * 2] = new Vector4(point0.X, point0.Y, z, 1);
+                result[2 + i * 2] = new Vector4(point1.X, point1.Y, z, 1);
+            }
+            result[0] = result[1];
+            result[count - 1] = result[count - 2];
+            return result;
+        }
+
 
 
         public static Vector4[] Circle(Vector2 center, float r, 
@@ -297,7 +381,7 @@ namespace LinearCodes
             vec.Normalize();
             return vec;
         }
-
+        #endregion 
     }
 
 

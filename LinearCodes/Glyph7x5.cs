@@ -13,8 +13,8 @@ namespace LinearCodes
     public class Glyph7x5 : DrawingVisual
     {
         #region Constant
-        public static readonly float PixelHeight = 3;
-        public static readonly float PixelWidth = 3;
+        public static readonly float PixelHeight = 2;
+        public static readonly float PixelWidth = 2;
         public static readonly int GlyphHeight = 7;
         public static readonly int GlyphWidth = 5;
         public static readonly float Gap = 0;
@@ -22,63 +22,54 @@ namespace LinearCodes
         public static readonly Dictionary<char, int[,]> GlyphDictionary = new Dictionary<char, int[,]>()
         {
             {'0', new int[,]{
-                {0,1,1,1,0},
-                {1,0,0,0,1},
-                {1,1,0,0,1},
-                {1,0,1,0,1},
-                {1,0,0,1,1},
-                {1,0,0,0,1},
-                {0,1,1,1,0}}},
+                {0,1,1,0},
+                {1,0,0,1},
+                {1,1,0,1},
+                {1,0,1,1},
+                {1,0,0,1},
+                {0,1,1,0}}},
             {'1', new int[,]{
-                {0,0,1,0,0},
-                {0,1,1,0,0},
-                {0,0,1,0,0},
-                {0,0,1,0,0},
-                {0,0,1,0,0},
-                {0,0,1,0,0},
-                {0,1,1,1,0}
-                }},
+                {0,0,1,0},
+                {0,1,1,0},
+                {0,0,1,0},
+                {0,0,1,0},
+                {0,0,1,0},
+                {0,1,1,1}}},
             {'R', new int[,]{
-                {1,1,1,1,0},
-                {1,0,0,0,1},
-                {1,0,0,0,1},
-                {1,1,1,1,0},
-                {1,0,1,0,0},
-                {1,0,0,1,0},
-                {1,0,0,0,1}
-                }},
+                {1,1,1,0},
+                {1,0,0,1},
+                {1,0,0,1},
+                {1,1,1,0},
+                {1,0,1,0},
+                {1,0,0,1}}},
             {'G', new int[,]{
-                {0,1,1,1,0},
-                {1,0,0,0,1},
-                {1,0,0,0,0},
-                {1,0,0,0,0},
-                {1,0,0,1,1},
-                {1,0,0,0,1},
-                {0,1,1,1,0}}},
+                {0,1,1,0},
+                {1,0,0,1},
+                {1,0,0,0},
+                {1,0,1,1},
+                {1,0,0,1},
+                {0,1,1,0}}},
             {' ', new int[,]{
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0}}},
+                {0,0,0,0},
+                {0,0,0,0},
+                {0,0,0,0},
+                {0,0,0,0},
+                {0,0,0,0},
+                {0,0,0,0}}},
              {'+', new int[,]{
-                {0,0,0,0,0},
-                {0,0,1,0,0},
-                {0,0,1,0,0},
-                {1,1,1,1,1},
-                {0,0,1,0,0},
-                {0,0,1,0,0},
-                {0,0,0,0,0}}},
+                {0,0,0,0},
+                {0,0,0,0},
+                {0,0,1,0},
+                {0,1,1,1},
+                {0,0,1,0},
+                {0,0,0,0}}},
              {'=', new int[,]{
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {1,1,1,1,1},
-                {0,0,0,0,0},
-                {1,1,1,1,1},
-                {0,0,0,0,0},
-                {0,0,0,0,0}}},
+                {0,0,0,0},
+                {0,0,0,0},
+                {1,1,1,1},
+                {0,0,0,0},
+                {1,1,1,1},
+                {0,0,0,0}}},
         };
 
        
@@ -141,26 +132,14 @@ namespace LinearCodes
             }
         }
 
-        private Vector2 _position;
+      
 
-        public Vector2 Position
-        {
-            get { return _position; }
-            set
-            {
-                if (_position == value) return;
-                _position = value;
-                ModelMatrixTranslate = Matrix4.CreateTranslation(value.X, value.Y, 0);
-            }
-        }
-
-        public Glyph7x5(char symbol, Vector2 position, Shader shader) : base(0, shader)
+        public Glyph7x5(char symbol, Vector2 position, SimpleShader shader) : base(shader)
         {
             Char = symbol;
-            Position = position;
-            IsModelMatrixTranslate = true;
+            Translate = position;
             Shape = GetFillRectangle(new Vector2(0,0), PixelWidth, PixelHeight);
-            InitBuffers();
+
         }
     }
 }

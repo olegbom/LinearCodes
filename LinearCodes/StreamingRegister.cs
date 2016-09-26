@@ -1,54 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using OpenTK;
 
 namespace LinearCodes
 {
     public class StreamingRegister: StreamingVisual
     {
-
-        public Vector2 Position { get; private set; }
-
         public float Delta = 10;
-        public string Word = "RG";
+        private string _word = "RG";
+
+        public string Word
+        {
+            get { return _word; }
+            set
+            {
+                _word = value;
+                for (int i = 0; i < _word.Length; i++)
+                {
+                    if (GlyphWord.Count > i)
+                        GlyphWord[i].Char = _word[i];
+                    else
+                    {
+                        var glyph = new Glyph7x5(_word[i], new Vector2(Delta*(i+2), Delta*0.2f), SimpleShader);
+                        GlyphWord.Add(glyph);
+                    }
+                }
+                for (int i = _word.Length; GlyphWord.Count > _word.Length; )
+                {
+                    var glyph = GlyphWord[i];
+                    GlyphWord.Remove(glyph);
+                }
+            }
+        }
+        
         
         public DigitalComponent Body { get; private set; }
 
-        public List<Glyph7x5> GlyphWord { get; } = new List<Glyph7x5>();
+        public ObservableCollection<Glyph7x5> GlyphWord { get; } = new ObservableCollection<Glyph7x5>();
 
         public Glyph7x5 MemoryGlyph { get; private set; }
 
-        public StreamingRegister(Shader shader, List<DrawingVisual> visuals) 
-            : base(shader, visuals, 1, 1)
+        public StreamingRegister(SimpleShader simpleShader) 
+            : base(simpleShader,  1, 1)
         {
-           
-        }
-
-        public void CreateBuffer(Vector2 position)
-        {
-            Position = position;
-            Body = new DigitalComponent(Shader)
+            
+            Body = new DigitalComponent(SimpleShader)
             {
                 PinsCount = 1,
                 Delta = Delta,
-                Position =  position
             };
             Body.CreateBuffer();
-            Visuals.Add(Body);
-            for (int i = 0; i < Word.Length; i++)
-            {
-                var letter = Word[i];
-                var glyph = new Glyph7x5(letter, 
-                    position + new Vector2(Delta * (2 + i), 5),
-                    Shader);
-                GlyphWord.Add(glyph);
-                Visuals.Add(glyph);
-            }
+            Childrens.Add(Body);
 
-            MemoryGlyph = new Glyph7x5('0',
-                position + new Vector2(Delta * 2.5f + 5, Delta * 2f + 5),
-                Shader);
-            Visuals.Add(MemoryGlyph);
+            GlyphWord.CollectionChanged += (s, e) =>
+            {
+                if(e.NewItems != null)
+                    foreach (Glyph7x5 glyph in e.NewItems)
+                        Childrens.Add(glyph);
+                if(e.OldItems != null)
+                    foreach (Glyph7x5 glyph in e.OldItems)
+                        Childrens.Remove(glyph);   
+            };
+
+            Word = _word;
+            MemoryGlyph = new Glyph7x5('0',new Vector2(Delta*2.5f, Delta*2 + 2), SimpleShader);
+            Childrens.Add(MemoryGlyph);
         }
 
         protected override void StartAnimation()
@@ -58,23 +75,23 @@ namespace LinearCodes
             //    MemoryGlyph = Bits[0];
             //    Bits[0] = null;
             //});
-            Bits[0].PathAnimation("Position", new List<Vector2>
+            Bits[0].PathAnimation("Translate", new List<Vector2>
                 {
-                    Bits[0].Position,
-                    Position + new Vector2(5, Delta*2 + 5),
-                    MemoryGlyph.Position
+                    Bits[0].Translate,
+                    new Vector2(1, Delta*2 + 2),
+                    MemoryGlyph.Translate
                 }, 10, (from, to) => (from - to).Length);
 
             //Bit.Animation("Position", MemoryGlyph.Position, 1000);
 
 
-            MemoryGlyph.PathAnimation("Position",
+            MemoryGlyph.PathAnimation("Translate",
                 new List<Vector2>
                 {
-                    MemoryGlyph.Position,
-                    Position + new Vector2(Delta*5 + 5, Delta*2 + 5),
-                    Position + new Vector2(Delta*5 + 5, Delta + 5),
-                    Position + new Vector2(Delta*6 + 5, Delta + 5)
+                    MemoryGlyph.Translate,
+                    new Vector2(Delta*5 + 1, Delta*2 + 2),
+                    new Vector2(Delta*5 + 1, Delta + 2),
+                    new Vector2(Delta*6 + 1, Delta + 2)
                 }, 10, (from, to) => (from - to).Length, () =>
                 {
                     EndAnimation(MemoryGlyph, 0);
@@ -90,13 +107,13 @@ namespace LinearCodes
         public override Vector2 InputPosition(int num)
         {
             if (num >= InCount) throw new IndexOutOfRangeException();
-            return Position + new Vector2(0, Delta);
+            return Translate + new Vector2(0, Delta);
         }
 
         public override Vector2 OutputPosition(int num)
         {
             if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Position + new Vector2(6*Delta, Delta); 
+            return Translate + new Vector2(6*Delta, Delta); 
         }
 
         public class GlyphPosAnimation: IDisposable
@@ -116,7 +133,7 @@ namespace LinearCodes
                     _n = value;
                     var delX = -(float) Math.Cos(_n*Math.PI/2)*a;
                     var delY = (float) Math.Sin(_n*Math.PI/2)*b;
-                    Glyph.Position = new Vector2(delX, delY) + center;
+                    Glyph.Translate = new Vector2(delX, delY) + center;
                 }
             }
 
@@ -124,7 +141,7 @@ namespace LinearCodes
             {
                 To = to;
                 Glyph = glyph;
-                Old = Glyph.Position;
+                Old = Glyph.Translate;
 
                 center = new Vector2(to.X,Old.Y);
                 a = To.X - Old.X;

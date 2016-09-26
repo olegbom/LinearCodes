@@ -13,7 +13,7 @@ namespace LinearCodes
         public Dictionary<string,int> Uniforms { get; }= new Dictionary<string, int>();
         public int VertexId { get; }
         public int FragmentId { get; }
-        public int ProgrammId { get; }
+        public int ProgramId { get; }
 
         public Shader(string vertexFileName, string fragmentFileName)
         {
@@ -43,15 +43,15 @@ namespace LinearCodes
                 Console.WriteLine(GL.GetShaderInfoLog(FragmentId));
 
             Console.WriteLine("Linking program...");
-            ProgrammId = GL.CreateProgram();
-            GL.AttachShader(ProgrammId, VertexId);
-            GL.AttachShader(ProgrammId, FragmentId);
-            GL.BindFragDataLocation(ProgrammId,0,"outputF");
-            GL.LinkProgram(ProgrammId);
+            ProgramId = GL.CreateProgram();
+            GL.AttachShader(ProgramId, VertexId);
+            GL.AttachShader(ProgramId, FragmentId);
+            GL.BindFragDataLocation(ProgramId,0,"outputF");
+            GL.LinkProgram(ProgramId);
 
-            GL.GetShader(ProgrammId, ShaderParameter.InfoLogLength, out infoLogLength);
+            GL.GetShader(ProgramId, ShaderParameter.InfoLogLength, out infoLogLength);
             if (infoLogLength > 0)
-                Console.WriteLine(GL.GetProgramInfoLog(ProgrammId));
+                Console.WriteLine(GL.GetProgramInfoLog(ProgramId));
         }
         
 
@@ -61,7 +61,7 @@ namespace LinearCodes
             int attrib;
             if (Attributes.TryGetValue(name, out attrib))
                 return attrib;
-            attrib = GL.GetAttribLocation(ProgrammId, name);
+            attrib = GL.GetAttribLocation(ProgramId, name);
             Attributes[name] = attrib;
             return attrib;
             
@@ -72,7 +72,7 @@ namespace LinearCodes
             int uniform;
             if (Uniforms.TryGetValue(name,out uniform))
                 return uniform;
-            uniform = GL.GetUniformLocation(ProgrammId, name);
+            uniform = GL.GetUniformLocation(ProgramId, name);
             Uniforms[name] = uniform;
             return uniform;
         }

@@ -24,7 +24,11 @@ namespace LinearCodes
         {
             if (Out.Bits[InNum] == null)
             {
+                In.Childrens.Remove(bit);
+                Out.Childrens.Add(bit);
                 Out.Bits[InNum] = bit;
+                bit.ClearIndividualMatrix();
+                bit.Translate = Out.InputPosition(InNum) - Out.Translate + new Vector2(4,2);
                 Out.Start();
             }
         }

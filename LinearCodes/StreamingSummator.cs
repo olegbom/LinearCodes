@@ -10,13 +10,8 @@ namespace LinearCodes
 {
     public class StreamingSummator: StreamingVisual
     {
-        public Vector2 Position
-        {
-            get { return InstasingList[0].Translate; }
-            set { InstasingList[0].Translate = value;}   
-        }
 
-        public float Delta;
+        public float Delta = 10;
         public bool Up = true;
         public bool Down = false;
 
@@ -24,15 +19,11 @@ namespace LinearCodes
         private Glyph7x5 GlyphEqual;
         private Glyph7x5 GlyphResult;
 
-        public StreamingSummator(Shader shader, List<DrawingVisual> visuals, int inCount) : base(shader, visuals, inCount, 1)
+        public StreamingSummator(SimpleShader simpleShader, int inCount)
+            : base(simpleShader, inCount, 1)
         {
             InstasingList.Add(new VisualUniforms(Color4.Black));
-        }
 
-        public void CreateBuffer(Vector2 position)
-        {
-            Position = position;
-            
             var vertices = new List<Vector4>();
 
             var center = new Vector2(Delta * 2,Delta * 2);
@@ -58,12 +49,9 @@ namespace LinearCodes
             vertices.AddRange(Polyline(new[]
             {
                 new Vector2(Delta/2, Delta*2.3f),
-                new Vector2(Delta,   Delta*2),
+                new Vector2(Delta*0.9f,   Delta*2),
                 new Vector2(Delta/2, Delta*1.7f),
             }, 2, 0.1f));
-
-
-
 
             var u = new Vector2(Delta * 2, Delta * 2.5f);
             var d = new Vector2(Delta * 2, Delta * 1.5f);
@@ -73,7 +61,7 @@ namespace LinearCodes
                 vertices.AddRange(Polyline(new[]
                 {
                     new Vector2(Delta*1.7f, Delta*3.5f),
-                    new Vector2(Delta*2,    Delta*3),
+                    new Vector2(Delta*2,    Delta*3.1f),
                     new Vector2(Delta*2.3f, Delta*3.5f)
                 }, 2, 0.1f));
                 vertices.AddRange(
@@ -89,7 +77,7 @@ namespace LinearCodes
                 vertices.AddRange(Polyline(new[]
                 {
                     new Vector2(Delta*1.7f, Delta*0.5f),
-                    new Vector2(Delta*2,    Delta*1),
+                    new Vector2(Delta*2,    Delta*0.9f),
                     new Vector2(Delta*2.3f, Delta*0.5f)
                 }, 2, 0.1f));
                 vertices.AddRange(
@@ -99,45 +87,40 @@ namespace LinearCodes
                     new Vector2(Delta * 2f, 0),
                     3, 12, 0.1f));
             }
-
-
-            Shape = vertices.ToArray();
-            InitBuffers();
-
-
-           
-
-            GlyphPlus = new Glyph7x5(' ',Position + new Vector2(Delta*1, -5), Shader);
-            Visuals.Add(GlyphPlus);
-
-            GlyphEqual = new Glyph7x5(' ', Position + new Vector2(Delta * 3, -5), Shader);
-            Visuals.Add(GlyphEqual);
             
+            Shape = vertices.ToArray();
+
+            GlyphPlus = new Glyph7x5(' ', new Vector2(Delta*1, -5), SimpleShader);
+            Childrens.Add(GlyphPlus);
+            
+            GlyphEqual = new Glyph7x5(' ', new Vector2(Delta * 3, -5), SimpleShader);
+            Childrens.Add(GlyphEqual);
         }
+
 
         protected override void StartAnimation()
         {
-            GlyphResult = new Glyph7x5(' ', Position + new Vector2(Delta * 4, -5),Shader);
-            Visuals.Add(GlyphResult);
+            GlyphResult = new Glyph7x5(' ', new Vector2(Delta * 4, -5),SimpleShader);
+            Childrens.Add(GlyphResult);
 
-            Bits[0].Animation("Position",Position - new Vector2(0, 5), 500, () =>
+            Bits[0].Animation("Translate", new Vector2(0, -5), 500, () =>
             {
                 GlyphResult.Char = Bits.Count(x => x.Char == '1')%2 == 1 ? '1' : '0';
-                GlyphResult.Animation("Position", GlyphResult.Position, 400, () =>
+                GlyphResult.Animation("Translate", GlyphResult.Translate, 400, () =>
                 {
                     GlyphPlus.Char = ' ';
                     GlyphEqual.Char = ' ';
                     for (int i = 0; i < Bits.Length; i++)
                     {
                         var localI = i;
-                        Bits[localI].Animation("Position", Bits[localI].Position, 200, () =>
+                        Bits[localI].Animation("Translate", Bits[localI].Translate, 200, () =>
                         {
-                            Visuals.Remove(Bits[localI]);
+                            Childrens.Remove(Bits[localI]);
                             Bits[localI] = null;
                         });
                         Bits[i].Char = ' ';
                     }
-                    GlyphResult.Animation("Position", Position + new Vector2(Delta*4+5, Delta*2 + 5), 200, () =>
+                    GlyphResult.Animation("Translate", new Vector2(Delta*4+2, Delta*2 + 2), 200, () =>
                     {
                         EndAnimation(GlyphResult, 0);
                         GlyphResult = null;
@@ -151,8 +134,7 @@ namespace LinearCodes
             {
 
                 int localI = i;
-                Bits[localI].Animation("Position", Position
-                + new Vector2(Delta * 2, -5), 500);
+                Bits[localI].Animation("Translate", new Vector2(Delta * 2, -5), 500);
             }
             GlyphPlus.Char = '+';
             GlyphEqual.Char = '=';
@@ -166,25 +148,25 @@ namespace LinearCodes
             switch (num)
             {
                 case 0:
-                    return Position + new Vector2(0, Delta*2);
+                    return Translate + new Vector2(0, Delta*2);
                 case 1:
                     if(Up)
-                        return Position + new Vector2(Delta*2, Delta * 4);
+                        return Translate + new Vector2(Delta*2, Delta * 4);
                     if(Down)
-                        return Position + new Vector2(Delta * 2, 0);
+                        return Translate + new Vector2(Delta * 2, 0);
                     break;
                 case 2:
                     if (Up && Down)
-                        return Position + new Vector2(Delta * 2, 0);
+                        return Translate + new Vector2(Delta * 2, 0);
                     break;
             }
-            return Position;
+            return Translate;
         }
 
         public override Vector2 OutputPosition(int num)
         {
             if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Position + new Vector2(Delta*4, Delta*2);
+            return Translate + new Vector2(Delta*4, Delta*2);
         }
     }
 }

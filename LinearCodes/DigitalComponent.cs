@@ -16,13 +16,7 @@ namespace LinearCodes
         public float Delta;
         public int PinsCount;
         
-        public Vector2 Position
-        {
-            get { return InstasingList[0].Translate; }
-            set { InstasingList[0].Translate = value; }
-        }
-
-        public DigitalComponent(Shader shader) : base(0, shader)
+        public DigitalComponent(SimpleShader shader) : base(shader)
         {
             InstasingList.Add(new VisualUniforms(Color4.Black));
         }
@@ -43,6 +37,13 @@ namespace LinearCodes
                 pointB = new Vector2(Delta, pointA.Y);
                 vertices.AddRange(Line(pointA, pointB, 2f));
                 vertices.AddRange(Circle(pointA, 3, 12, 0.1f));
+                vertices.AddRange(Polyline(
+                    new[] {
+
+                        pointB - new Vector2(Delta*0.5f,Delta*0.3f),
+                        pointB- new Vector2(Delta*0.1f,0),
+                        pointB - new Vector2(Delta*0.5f,-Delta*0.3f)
+                    }, 2, 0.1f));
             }
             
             pointB = new Vector2(Delta * 6, PinsCount * Delta);
@@ -51,7 +52,7 @@ namespace LinearCodes
             vertices.AddRange(Circle(pointB, 3, 12, 0.1f));
 
             Shape = vertices.ToArray();
-            InitBuffers();
+
         }
     }
 }

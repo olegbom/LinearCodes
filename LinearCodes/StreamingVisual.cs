@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
 {
@@ -16,20 +17,19 @@ namespace LinearCodes
         public Edge[] Outputs { get; }
         public Glyph7x5[] Bits { get; }
 
+
+
         public int InCount { get; }
         public int OutCount { get; }
-        protected readonly List<DrawingVisual> Visuals; 
         
-        public StreamingVisual(Shader shader, List<DrawingVisual> visuals, int inCount, int outCount) 
-            : base(0, shader)
+        public StreamingVisual(SimpleShader simpleShader, int inCount, int outCount) 
+            : base(simpleShader)
         {
             InCount = inCount;
             OutCount = outCount;
             Inputs = new Edge[inCount];
             Outputs = new Edge[outCount];
             Bits = new Glyph7x5[inCount];
-            Visuals = visuals;
-            Visuals.Add(this);
         }
 
         protected void EndAnimation(Glyph7x5 bit, int outputIndex)
@@ -49,6 +49,7 @@ namespace LinearCodes
         protected abstract void StartAnimation();
         public abstract Vector2 InputPosition(int num);
         public abstract Vector2 OutputPosition(int num);
+        
         
 
         public void ConnectTo(int outIndex, StreamingVisual toVisual, int inIndex)

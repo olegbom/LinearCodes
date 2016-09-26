@@ -18,11 +18,41 @@ namespace LinearCodes
 {
     public class Program: GameWindow
     {
-        private double grad = 0;
+        private double grad;
 
-        private MatrixToVisual LinearMachine;
         private InseparableCode InseparableCode;
-        public DrawingVisual Grid;
+        private Field Field;
+        private SimpleShader SimpleShader;
+
+        public RadialMenu menu;
+
+        private float _scale = 1.0f;
+
+        public float Scale
+        {
+            get { return _scale; }
+            set
+            {
+                if (value == _scale) return;
+                _scale = value;
+                UpdateprojectionMatrix();
+            }
+        }
+
+        private Vector2 _translate;
+        public Vector2 Translate
+        {
+            get { return _translate; }
+            set
+            {
+                if (value == _translate) return;
+                _translate = value;
+                
+                _translate = Vector2.ComponentMax(Vector2.Zero, _translate);
+                UpdateprojectionMatrix();
+            }
+        }
+
 
 
         public Program()
@@ -39,12 +69,9 @@ namespace LinearCodes
         {
             base.OnLoad(e);
 
-           
 
-
-
-            Shader = new Shader("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
-            InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} ,Shader);
+            SimpleShader = new SimpleShader("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+            InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} , SimpleShader);
             //LinearMachine =new MatrixToVisual(new[,]
             //{
             //    {true,  true,  true, },
@@ -52,25 +79,15 @@ namespace LinearCodes
             //    {false, true,  true, },
             //    {true,  true,  false, },
             //    {true,  true,  true, }
-            //}, Shader);
+            //}, SimpleShader);
 
-            Grid = new DrawingVisual(0,Shader);
+            
+            //menu = new RadialMenu(SimpleShader);
+            Field = new Field(Width, Height, SimpleShader);
+            menu = new RadialMenu(SimpleShader);
             var delta = 10;
 
-            List<Vector4> vertices = new List<Vector4>();
-
-            for (int i = delta; i < 700; i += delta)
-            {
-                vertices.AddRange(DrawingVisual.Line(new Vector2(0 + 0.5f, i + 0.5f), new Vector2(900 + 0.5f, i + 0.5f), 1f, -0.5f));
-            }
-
-            for (int i = delta; i < 900; i += delta)
-            {
-                vertices.AddRange(DrawingVisual.Line(new Vector2(i + 0.5f, 0 + 0.5f), new Vector2(i + 0.5f, 800 + 0.5f), 1f, -0.5f));
-            }
-            Grid.Shape = vertices.ToArray();
-            Grid.InitBuffers();
-            Grid.InstasingList.Add(new VisualUniforms(Color.LightGray));
+           
             
             GL.ClearColor(Color.Beige);
             GL.Enable(EnableCap.Blend);
@@ -79,43 +96,95 @@ namespace LinearCodes
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             //  GL.PointSize(2);
 
-            projectionMatrixUniform = Shader.GetUniformMatrix4("projMatrix");
-            modelMartixUniform = Shader.GetUniformMatrix4("modelMatrix");
-            modelMartixUniform.Value = Matrix4.Identity;
+
+            SimpleShader.UniformModelMatrix.Value = Matrix4.Identity;
             
 
             Random r = new Random();
 
+            Vector2 coordMouseDown = new Vector2(0,0);
+            bool mouseClicked = false;
+            Vector2 oldTranslate = Translate;
+           
             MouseDown += (s, a) =>
             {
+                Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
                 if(a.Button == MouseButton.Left)
                 {
-                    Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
-                    InseparableCode.MouseDown(mousePos);
+                    
+                    coordMouseDown = mousePos;
+                    mouseClicked = true;
+                    oldTranslate = Translate;
+                    InseparableCode.MouseDown((mousePos+Translate)/Scale);
+                }
+                if (a.Button == MouseButton.Right)
+                {
+                    menu.Translate = (mousePos + Translate)/Scale;
+                    menu.Visible = true;
                 }
             };
             MouseMove += (s, a) =>
             {
                 Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
-                InseparableCode.MouseMove(mousePos);
+                if (mouseClicked)
+                {
+                    Translate = oldTranslate + coordMouseDown - mousePos;
+                }
+                InseparableCode.MouseMove((mousePos + Translate) /Scale);
+                if (menu.Visible)
+                {
+                    menu.MouseMove((mousePos + Translate) / Scale);
+                }
+            };
+            MouseUp += (s, a) =>
+            {
+                if (a.Button == MouseButton.Left)
+                {
+                    mouseClicked = false;
+                    Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
+                }
+                if (a.Button == MouseButton.Right)
+                {
+                    menu.Visible = false;
+                }
             };
 
+            MouseWheel += (s, a) =>
+            {
+                Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
+                
+                var max = 2.0f;
+                var min = 1.0f;
+
+                float newScale = Scale * (1+ 0.1f * a.Delta);
+                if (newScale > max) newScale = max;
+                if (newScale < min) newScale = min;
+                var newTranslate = (mousePos + Translate)*newScale/Scale - mousePos;
+                Translate = new Vector2((int)newTranslate.X,(int)newTranslate.Y);
+
+                Scale = newScale;
+                //this.Animation("Scale", newScale, 200);
+            };
 
         }
           
-        private Uniform<Matrix4> projectionMatrixUniform;
-        private Uniform<Matrix4> modelMartixUniform; 
-        private Shader Shader;
+
+        
       
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            projectionMatrixUniform.Value = Matrix4.CreateOrthographicOffCenter(0, Width, 0, Height, -1, 1);
+            UpdateprojectionMatrix();
             GL.Viewport(0, 0, Width, Height);  //Слава Богам, оно почему то работает!
         }
 
-        
+        protected void UpdateprojectionMatrix()
+        {
+            SimpleShader.UniformProjectionMatrix.Value = Matrix4.CreateOrthographicOffCenter(Translate.X / Scale, (Width + Translate.X)/ Scale,
+                Translate.Y / Scale, (Height+Translate.Y)/Scale, -1, 1);
+        }
+
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -143,15 +212,11 @@ namespace LinearCodes
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             //   GL.LoadIdentity();
 
-            // float xTr = 1 + 30 * (float)(1 + Math.Cos(grad * 0.3));
-            //  float yTr = 1 + 30 * (float)(1 + Math.Sin(grad * 0.3));
-            // modelMartixUniform.Value = Matrix4.CreateTranslation(20,20 + (float)Math.Sin(grad)*5,0);
-            // LinearMachine.Draw();
-            // Field.X = 100 + (float)Math.Cos(grad/10)*100;
-           // LinearMachine.Draw();
-            Grid.Draw();
+           
+            
             InseparableCode.Draw();
-
+            menu.Draw();
+            Field.Draw();
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), IntPtr.Zero, BufferUsageHint.StreamDraw);
             //// Fill newly allocated buffer
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), VBO, BufferUsageHint.StreamDraw);

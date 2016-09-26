@@ -20,7 +20,7 @@ namespace LinearCodes
 
         public bool[,] Matrix;
 
-        public MatrixToVisual(bool[,] matrix, Shader shader) 
+        public MatrixToVisual(bool[,] matrix, SimpleShader simpleShader) 
         {
 
             Matrix = matrix;
@@ -31,7 +31,7 @@ namespace LinearCodes
             WiresOutputs = new Wire[jcount];
             DigitalComponent[] logicalXors = new DigitalComponent[jcount];
 
-            InOutPins = new DrawingVisual(0,shader);
+            InOutPins = new DrawingVisual(simpleShader);
             
             var delta = 10;
             var x0 = delta*5; 
@@ -42,12 +42,12 @@ namespace LinearCodes
             var xLineRight = xRight;
             var xLineLeft = x0 + circleR;
             InOutPins.Shape = Round(Vector2.Zero, circleR, 4.0f, 50, 0.1f);
-            InOutPins.InitBuffers();
+
 
 
             for (int i = 0; i < icount; i++)
             {
-                WiresInputs[i] = new Wire(shader);
+                WiresInputs[i] = new Wire(simpleShader);
                 WiresInputs[i].Thickness = 2.0f;
                 WiresInputs[i].PointRadius = 3.0f;
             }
@@ -69,7 +69,7 @@ namespace LinearCodes
                 
                 int pinNum = 0;
 
-                logicalXors[j] = new DigitalComponent(shader);
+                logicalXors[j] = new DigitalComponent(simpleShader);
 
                 var rectHalfHeight = pinsCounts[j] * delta;
 
@@ -81,7 +81,7 @@ namespace LinearCodes
                 
                 xBase = xorX + logicalXors[j].Width;
 
-                WiresOutputs[j] = new Wire(shader);
+                WiresOutputs[j] = new Wire(simpleShader);
                 WiresOutputs[j].Color = Color4.Red;
                 WiresOutputs[j].Thickness = 2.0f;
                 WiresOutputs[j].PointRadius = 3.0f;

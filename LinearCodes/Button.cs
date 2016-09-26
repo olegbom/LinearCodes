@@ -22,25 +22,19 @@ namespace LinearCodes
             set { InstasingList[0].Color = value; }
         }
 
-        public Vector2 Position
-        {
-            get { return InstasingList[0].Translate; }
-            set { InstasingList[0].Translate = value; }
-        }
-
-        public Button(float radius, Shader shader) : base(0, shader)
+        public Button(float radius, SimpleShader simpleShader) : base(simpleShader)
         {
             Radius = radius;
             InstasingList.Add(new VisualUniforms(DefaultColor4));
             Shape = Circle(new Vector2(0,0), radius, 60);
-            InitBuffers();
+
         }
 
         Vector2 oldMouseCoord = Vector2.Zero;
         public void MouseMove(Vector2 mouseCoord)
         {
-            bool isWithing = (mouseCoord - Position).LengthSquared < Radius * Radius;
-            bool isOldWithing = (oldMouseCoord - Position).LengthSquared < Radius * Radius;
+            bool isWithing = (mouseCoord - Translate).LengthSquared < Radius * Radius;
+            bool isOldWithing = (oldMouseCoord - Translate).LengthSquared < Radius * Radius;
             if (isWithing && !isOldWithing)
                 this.Animation("Color", MoveColor4, 100);
             else if (isOldWithing && !isWithing)
@@ -51,7 +45,7 @@ namespace LinearCodes
 
         public void MouseDown(Vector2 mouseCoord)
         {
-            if ((mouseCoord - Position).LengthSquared < Radius*Radius)
+            if ((mouseCoord - Translate).LengthSquared < Radius*Radius)
             {
                 this.Animation("Color", PressColor4, 100, 
                     () => this.Animation("Color", DefaultColor4, 100));

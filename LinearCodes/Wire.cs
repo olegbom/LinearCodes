@@ -46,7 +46,7 @@ namespace LinearCodes
         public float Z = 0.0f;
         private List<Vector4> vertices = new List<Vector4>();
 
-        public Wire(Shader shader) : base(0, shader)
+        public Wire(SimpleShader shader) : base(shader)
         {
             InstasingList.Add(new VisualUniforms(ZeroColor4));    
         }
@@ -75,7 +75,6 @@ namespace LinearCodes
         public void CreateBuffer()
         {
             Shape = vertices.ToArray();
-            InitBuffers();
         }
 
     }

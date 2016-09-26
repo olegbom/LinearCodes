@@ -7,38 +7,35 @@ using System.Threading.Tasks;
 
 namespace LinearCodes
 {
-    public class InseparableCode
+    public class InseparableCode: DrawingVisual
     {
-        public List<DrawingVisual> Visuals = new List<DrawingVisual>();
-
-
         public StreamingRegister[] Registers { get; }
 
         public StreamingSummator[] Summators { get; }
         public StreamingSplitter[] Splitters { get; }
 
-        public static int Delta = 20;
+        public static int Delta = 10;
 
         public Button ButtonTickZero { get; }
         public Button ButtonTickOne { get; }
 
-        public StreamingSplitter streamingSplitter;
-        public StreamingRegister streamingRegister;
         public StreamingSource streamingSource;
-        public StreamingSummator streamingSummator;
         public StreamingReceiver streamingReceiver;
 
         public Glyph7x5 TestBit;
 
-        public InseparableCode(bool[] gx, Shader shader)
+        public InseparableCode(bool[] gx, SimpleShader simpleShader): base (simpleShader)
         {
            // if (gx.Length != 4) throw new Exception("Неправильный размер массива");
             int gCount = gx.Length;
 
-            streamingSource = new StreamingSource(shader, Visuals);
+            streamingSource = new StreamingSource(new[] { 0, 1, 1, 0 }, simpleShader)
+            {
+                Delta = Delta,
+                Translate = new Vector2(Delta*1, Delta*11)
+            };
 
-            streamingSource.message.AddRange(new[] { 0, 1, 1, 0 });
-            streamingSource.CreateBuffers(new Vector2(Delta * 1, Delta * 11));
+            Childrens.Add(streamingSource);
            
 
             #region Register
@@ -46,11 +43,12 @@ namespace LinearCodes
             Registers = new StreamingRegister[regCount];
             for (int i = 0; i < regCount; i++)
             {
-                Registers[i] = new StreamingRegister(shader, Visuals)
+                Registers[i] = new StreamingRegister(simpleShader)
                 {
                     Delta = Delta,
+                    Translate = new Vector2(Delta * 8 + i * Delta * 8, Delta * 10)
                 };
-                Registers[i].CreateBuffer(new Vector2(Delta * 8 + i * Delta * 8, Delta * 10));
+                Childrens.Add(Registers[i]);
             }
             
             #endregion
@@ -60,28 +58,28 @@ namespace LinearCodes
             int sumCount = gx.Count(x => x) - 1;
 
             Splitters = new StreamingSplitter[sumCount];
-            Splitters[0] = new StreamingSplitter(shader, Visuals)
-                { Position = new Vector2(Delta * 7, Delta * 11) };
-
+            Splitters[0] = new StreamingSplitter(simpleShader)
+                { Translate = new Vector2(Delta * 7, Delta * 11) };
+            Childrens.Add(Splitters[0]);
             Summators = new StreamingSummator[sumCount];
             for (int i = 1, j = 0; i < gx.Length; i++)
             {
                 if (!gx[i]) continue;
 
-                Summators[j] = new StreamingSummator(shader, Visuals, 2)
+                Summators[j] = new StreamingSummator(simpleShader, 2)
                 {
                     Up = true,
                     Delta = Delta,
+                    Translate = new Vector2(Delta * 5 + i * Delta * 8, Delta * 3)
                 };
-                Summators[j].CreateBuffer(new Vector2(Delta * 5 + i * Delta * 8, Delta * 3));
-                            
+                Childrens.Add(Summators[j]);
                 j++;
                 if (j >= sumCount) continue;
-                Splitters[j] = new StreamingSplitter(shader, Visuals)
+                Splitters[j] = new StreamingSplitter(simpleShader)
                 {
-                    Position = new Vector2(Delta * 7 + i * Delta * 8, Delta * 11)
+                    Translate = new Vector2(Delta * 7 + i * Delta * 8, Delta * 11)
                 };
-
+                Childrens.Add(Splitters[j]);
                 ConnectWire(Splitters[j], 0, Summators[j-1], 1);
                 
             }
@@ -106,9 +104,12 @@ namespace LinearCodes
 
             #endregion
 
-            streamingReceiver = new StreamingReceiver(shader, Visuals);
-            streamingReceiver.Delta = Delta;
-            streamingReceiver.CreateBuffers(new Vector2(Delta * 2  + Delta* gx.Length * 8, Delta * 5));
+            streamingReceiver = new StreamingReceiver(simpleShader)
+            {
+                Delta = Delta,
+                Translate = new Vector2(Delta*2 + Delta*gx.Length*8, Delta*5)
+            };
+            Childrens.Add(streamingReceiver);
             ConnectWire(streamingSource, 0, Splitters[0], 0);
             ConnectWire(Splitters[0], 0, Summators[0], 0, 
                 new[] { new Vector2(Delta * 7, Delta * 5) });
@@ -119,56 +120,34 @@ namespace LinearCodes
             ConnectWire(Summators.Last(), 0, streamingReceiver, 0);
 
 
-            ButtonTickZero = new Button(Delta, shader);
-            ButtonTickZero.Position = new Vector2(Delta * 4, Delta * 10);
-            Visuals.Add(ButtonTickZero);
+            ButtonTickZero = new Button(Delta, simpleShader) {Translate = new Vector2(Delta*4, Delta*10)};
+            Childrens.Add(ButtonTickZero);
 
-            TestBit = new Glyph7x5('0', new Vector2(Delta * 3, Delta * 3), shader);
-            Visuals.Add(TestBit);
+            TestBit = new Glyph7x5('0', new Vector2(Delta * 3, Delta * 3), simpleShader);
+            Childrens.Add(TestBit);
             ButtonTickZero.Click += (s, e) =>
             {
                 TestBit.Char = TestBit.Char == '0' ? '=' : '0';
-               /* gWires[0].Value = false;
-                foreach(Register reg in Registers)
-                {
-                    reg.RegisterTick();
-                }*/
+             
             };
 
-            ButtonTickOne = new Button(Delta, shader);
-            ButtonTickOne.Position = new Vector2(Delta * 2, Delta * 10);
-            Visuals.Add(ButtonTickOne);
+            ButtonTickOne = new Button(Delta, simpleShader) {Translate = new Vector2(Delta*2, Delta*10)};
+            Childrens.Add(ButtonTickOne);
 
-
-
-
-           
-
-
-            
-
-            
-
-          
-            
-            
             
 
             ButtonTickOne.Click += (s, e) =>
             {
                 streamingSource.Start();
-                /*gWires[0].Value = true;
-                foreach (Register reg in Registers)
-                {
-                    reg.RegisterTick();
-                }*/
             };
 
         }
 
         public void ConnectWire(StreamingVisual from, int outNum, StreamingVisual to, int inNum, Vector2[] middlePoints)
         {
-            StreamingWire wire = new StreamingWire(from.Shader, Visuals);
+            StreamingWire wire = new StreamingWire(from.SimpleShader);
+            Childrens.Add(wire);
+            
             Vector2 posOut = from.OutputPosition(outNum);
             Vector2 posIn = to.InputPosition(inNum);
 
@@ -183,9 +162,9 @@ namespace LinearCodes
 
         public void ConnectWire(StreamingVisual from, int outNum, StreamingVisual to, int inNum)
         {
-            StreamingWire wire = new StreamingWire(from.Shader, Visuals);
- 
-            List<Vector2> points = new List<Vector2>()
+            StreamingWire wire = new StreamingWire(from.SimpleShader);
+            Childrens.Add(wire);
+            List<Vector2> points = new List<Vector2>
             {
                  from.OutputPosition(outNum),
                  to.InputPosition(inNum)
@@ -207,11 +186,6 @@ namespace LinearCodes
         {
             ButtonTickOne.MouseMove(mouseCoord);
             ButtonTickZero.MouseMove(mouseCoord);
-        }
-
-        public void Draw()
-        {
-            Visuals.ForEach(x => x.Draw());
         }
     }
 }

@@ -30,48 +30,39 @@ namespace LinearCodes
             get { return InstasingList[0].Color; }
             set { InstasingList[0].Color = value; }
         }
-
-        public Vector2 Position
-        {
-            get { return InstasingList[0].Translate; }
-            set { InstasingList[0].Translate = value; }
-        }
-
-
-
-        public StreamingSplitter(Shader shader, List<DrawingVisual> visuals) 
-            : base(shader, visuals, 1, 2)
+        
+        public StreamingSplitter(SimpleShader simpleShader) 
+            : base(simpleShader,  1, 2)
         {
             InstasingList.Add(new VisualUniforms(Color4.Black));
             Shape = Circle(Vector2.Zero, PointSize, 20, Z);
-            InitBuffers();
         }
 
         public override Vector2 InputPosition(int num)
         {
             if (num >= InCount) throw new IndexOutOfRangeException();
-            return Position;
+            return Translate;
         }
 
         public override Vector2 OutputPosition(int num)
         {
             if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Position;
+            return Translate;
         }
 
         protected override void StartAnimation()
         {
-            CloneBit = new Glyph7x5(Bits[0].Char, Bits[0].Position, Shader);
+            CloneBit = new Glyph7x5(Bits[0].Char, Bits[0].Translate, SimpleShader);
             CloneBit.InstasingList[0].Color = Color4.Black;
-            Visuals.Add(CloneBit);
+            Childrens.Add(CloneBit);
 
            
             //CloneBit.Animation("Position", CloneBit.Position,400, () =>
             //{
             EndAnimation(Bits[0], 0);
-                Bits[0] = null;
-                EndAnimation(CloneBit, 1);
-                CloneBit = null;
+            Bits[0] = null;
+            EndAnimation(CloneBit, 1);
+            CloneBit = null;
             //});
         }
 
