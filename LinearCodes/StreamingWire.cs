@@ -31,41 +31,41 @@ namespace LinearCodes
                 var currentPos = Path[_segment - 1] + vector;
                 path.Add(currentPos);
                 MovingCircle.Translate = currentPos;
-                MovingWire.Shape = Polyline(path, Thickness, 0.1f);
+                MovingWire.Shape = Polyline(path, Thickness);
+                
             }
         }
 
-        private List<Vector2> Path = new List<Vector2>();
+        private List<Vector2> _path= new List<Vector2>();
+
+
+        public List<Vector2> Path
+        {
+            get { return _path; }
+            set
+            {
+                _path = value; 
+                var width = _path.Max(v => v.X) - _path.Min(v => v.X) + Thickness + 2;
+                var height = _path.Max(v => v.Y) - _path.Min(v => v.Y) + Thickness + 2;
+                Size = new Vector2(width, height);
+                Shape = Polyline(_path, Thickness + 2.0f);
+                MovingWire.Shape = Polyline(_path, Thickness);
+                OldMovingWire.Shape = MovingWire.Shape;
+            }
+        }
 
         public StreamingWire(SimpleShader simpleShader):
             base(simpleShader, 1, 1)
         {
             InstasingList.Add(new VisualUniforms(Color4.Black));
-        }
-
-        public void CreateBuffers(IEnumerable<Vector2> path)
-        {
-
-
-            Path = path as List<Vector2> ?? path.ToList();
-            var width = Path.Max(v => v.X) - Path.Min(v => v.X) + Thickness + 2;
-            var height = Path.Max(v => v.Y) - Path.Min(v => v.Y) + Thickness + 2;
-            Size = new Vector2(width, height);
-
-            Shape = Polyline(path, Thickness+2.0f);
-            
             MovingWire = new DrawingVisual(SimpleShader);
             MovingWire.InstasingList.Add(new VisualUniforms(Color4.Red));
-            MovingWire.Shape = Polyline(path, Thickness, 0.1f);
             OldMovingWire = new DrawingVisual(SimpleShader);
             OldMovingWire.InstasingList.Add(new VisualUniforms(Color4.Red));
-            OldMovingWire.Shape = MovingWire.Shape;
             MovingCircle = new DrawingVisual(SimpleShader);
             MovingCircle.InstasingList.Add(new VisualUniforms(Color4.Black));
             MovingCircle.Scale = new Vector2(0,0);
             MovingCircle.Shape = Circle(Vector2.Zero, Thickness/2, 10);
-            
-            
             Childrens.Add(OldMovingWire);
             Childrens.Add(MovingWire);
             Childrens.Add(MovingCircle);

@@ -78,8 +78,28 @@ namespace LinearCodes
         protected abstract void StartAnimation();
         public abstract Vector2 InputPosition(int num);
         public abstract Vector2 OutputPosition(int num);
-        
-        
+
+        public bool Hit(Vector2 v)
+        {
+            var min = Translate;
+            var max = Translate + Size;
+            
+            return min.X <= v.X &&
+                   min.Y <= v.Y &&
+                   max.X >= v.X &&
+                   max.Y >= v.Y;
+        }
+        public bool Hit(Vector2 v1, Vector2 v2)
+        {
+            var selectMin = Vector2.ComponentMin(v1, v2);
+            var selectMax = Vector2.ComponentMax(v1, v2);
+            var min = Translate;
+            var max = Translate + Size;
+            return min.X >= selectMin.X &&
+                   min.Y >= selectMin.Y &&
+                   max.X <= selectMax.X &&
+                   max.Y <= selectMax.Y;
+        }
 
         public void ConnectTo(int outIndex, StreamingVisual toVisual, int inIndex)
         {

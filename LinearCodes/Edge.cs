@@ -6,8 +6,8 @@ namespace LinearCodes
     {
         public StreamingVisual In;
         public int OutNum;
-
-        public Vector2 Position;
+        
+        
         
         public StreamingVisual Out;
         public int InNum;

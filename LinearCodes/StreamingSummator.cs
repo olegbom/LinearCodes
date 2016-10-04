@@ -8,10 +8,8 @@ using OpenTK.Graphics;
 
 namespace LinearCodes
 {
-    public class StreamingSummator: StreamingVisual
+    public class StreamingSummator: StreamingComponent
     {
-
-
         public bool Up = true;
         public bool Down = false;
 
@@ -28,65 +26,24 @@ namespace LinearCodes
             var vertices = new List<Vector2>();
 
             var center = new Vector2(Delta * 2,Delta * 2);
-            var round = Round(center, Delta, 2, 60);
 
-            vertices.AddRange(round);
+            vertices.AddRange(Round(center, Delta, 2, 60));
             var l = new Vector2(Delta * 1.5f, Delta * 2);
             var r = new Vector2(Delta * 2.5f, Delta * 2);
             vertices.AddRange(Line(l, r, 2));
-            vertices.AddRange(
-                Line(r + new Vector2(Delta*0.5f, 0),
-                     r + new Vector2(Delta*1.5f, 0), 2));
-            vertices.AddRange(Circle(
-                     r + new Vector2(Delta * 1.5f, 0),
-                   3, 12));
-            vertices.AddRange(
-                Line(l - new Vector2(Delta * 0.5f, 0),
-                     l - new Vector2(Delta * 1.5f, 0), 2));
-            vertices.AddRange(Circle(
-                     l - new Vector2(Delta * 1.5f, 0),
-                   3, 12));
-
-            vertices.AddRange(Polyline(new[]
-            {
-                new Vector2(Delta/2, Delta*2.3f),
-                new Vector2(Delta*0.9f,   Delta*2),
-                new Vector2(Delta/2, Delta*1.7f),
-            }, 2, 0.1f));
-
             var u = new Vector2(Delta * 2, Delta * 2.5f);
             var d = new Vector2(Delta * 2, Delta * 1.5f);
             vertices.AddRange(Line(u, d, 2));
+
+            CreateInput(0, ConnectorOrientation.Left, new Vector2(0,Delta*2));
+            CreateOutput(0, ConnectorOrientation.Right, new Vector2(Delta*4,Delta*2));
+
             if (Up)
             {
-                vertices.AddRange(Polyline(new[]
-                {
-                    new Vector2(Delta*1.7f, Delta*3.5f),
-                    new Vector2(Delta*2,    Delta*3.1f),
-                    new Vector2(Delta*2.3f, Delta*3.5f)
-                }, 2, 0.1f));
-                vertices.AddRange(
-                    Line(new Vector2(Delta * 2, Delta * 3),
-                         new Vector2(Delta * 2, Delta * 4), 2));
-                vertices.AddRange(Circle(
-                    new Vector2(Delta * 2f,Delta * 4.0f),
-                    3, 12));
-            }
-
-            if (Down)
+                CreateInput(1, ConnectorOrientation.Top, new Vector2(Delta*2, Delta * 4));
+            } else if (Down)
             {
-                vertices.AddRange(Polyline(new[]
-                {
-                    new Vector2(Delta*1.7f, Delta*0.5f),
-                    new Vector2(Delta*2,    Delta*0.9f),
-                    new Vector2(Delta*2.3f, Delta*0.5f)
-                }, 2, 0.1f));
-                vertices.AddRange(
-                    Line(new Vector2(Delta * 2, Delta * 1),
-                         new Vector2(Delta * 2, 0        ), 2));
-                vertices.AddRange(Circle(
-                    new Vector2(Delta * 2f, 0),
-                    3, 12));
+                CreateInput(1, ConnectorOrientation.Bottom, new Vector2(Delta * 2, 0));
             }
             
             Shape = vertices.ToArray();
@@ -139,35 +96,8 @@ namespace LinearCodes
             }
             GlyphPlus.Char = '+';
             GlyphEqual.Char = '=';
-
-
         }
 
-        public override Vector2 InputPosition(int num)
-        {
-            if (num >= InCount) throw new IndexOutOfRangeException();
-            switch (num)
-            {
-                case 0:
-                    return Translate + new Vector2(0, Delta*2);
-                case 1:
-                    if(Up)
-                        return Translate + new Vector2(Delta*2, Delta * 4);
-                    if(Down)
-                        return Translate + new Vector2(Delta * 2, 0);
-                    break;
-                case 2:
-                    if (Up && Down)
-                        return Translate + new Vector2(Delta * 2, 0);
-                    break;
-            }
-            return Translate;
-        }
-
-        public override Vector2 OutputPosition(int num)
-        {
-            if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Translate + new Vector2(Delta*4, Delta*2);
-        }
+      
     }
 }

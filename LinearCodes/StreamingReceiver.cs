@@ -8,7 +8,7 @@ using OpenTK.Graphics;
 
 namespace LinearCodes
 {
-    public class StreamingReceiver: StreamingVisual
+    public class StreamingReceiver: StreamingComponent
     {
         public List<Glyph7x5> BitMessage { get; } = new List<Glyph7x5>();
 
@@ -20,14 +20,14 @@ namespace LinearCodes
             var vertices = new List<Vector2>();
             vertices.AddRange(Polyline(new[]
             {
-                new Vector2(0, 0),
+                new Vector2(Delta, 0),
                 new Vector2(Delta*8, 0),
                 new Vector2(Delta*8, Delta*2),
                 new Vector2(Delta, Delta*2)
             }, 2));
-            vertices.AddRange(Circle(new Vector2(0,0),3, 15));
-            Shape = vertices.ToArray();
 
+            CreateInput(0,ConnectorOrientation.Left, new Vector2(0,0));
+            Shape = vertices.ToArray();
         }
 
         protected override void StartAnimation()
@@ -42,16 +42,6 @@ namespace LinearCodes
             }
         }
         
-        public override Vector2 InputPosition(int num)
-        {
-            if (num >= InCount) throw new IndexOutOfRangeException();
-            return Translate;
-        }
-
-        public override Vector2 OutputPosition(int num)
-        {
-            if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Translate;
-        }
+        
     }
 }

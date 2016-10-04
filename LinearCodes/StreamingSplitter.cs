@@ -10,15 +10,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
 {
-    enum ConnectorOrientation
-    {
-        Left = 0,
-        Top = 1,
-        Right = 2,
-        Bottom = 3
-    }
 
-    public class StreamingSplitter: StreamingVisual
+
+    public class StreamingSplitter: StreamingComponent
     {
         public float PointSize = 4.0f;
 
@@ -33,9 +27,13 @@ namespace LinearCodes
         public StreamingSplitter(SimpleShader simpleShader) 
             : base(simpleShader,  1, 2)
         {
-            Size = new Vector2(8,8);
+            Size = new Vector2(Delta*2,Delta*2);
             InstasingList.Add(new VisualUniforms(Color4.Black));
-            Shape = Circle(Vector2.Zero, PointSize, 20);
+            Shape = Circle(new Vector2(Delta, Delta), 0, 20);
+            CreateInput(0, ConnectorOrientation.Left, new Vector2(0,Delta));
+            
+            CreateOutput(0, ConnectorOrientation.Right, new Vector2(Delta*2,Delta));
+            CreateOutput(1, ConnectorOrientation.Bottom, new Vector2(Delta, 0));
         }
 
         public override Vector2 InputPosition(int num)
@@ -52,18 +50,26 @@ namespace LinearCodes
 
         protected override void StartAnimation()
         {
-            CloneBit = new Glyph7x5(Bits[0].Char, Bits[0].Translate, SimpleShader);
-            CloneBit.InstasingList[0].Color = Color4.Black;
-            Childrens.Add(CloneBit);
+            
+            Bits[0].Animation("Translate",new Vector2(Delta, Delta), 100, () =>
+            {
+                CloneBit = new Glyph7x5(Bits[0].Char, Bits[0].Translate, SimpleShader);
+                CloneBit.InstasingList[0].Color = Color4.Black;
+                Childrens.Add(CloneBit);
+                Bits[0].Animation("Translate", OutputConnectors[0].Translate, 100, () =>
+                {
+                    EndAnimation(Bits[0], 0);
+                    Bits[0] = null;
+                });
 
-           
-            //CloneBit.Animation("Position", CloneBit.Position,400, () =>
-            //{
-            EndAnimation(Bits[0], 0);
-            Bits[0] = null;
-            EndAnimation(CloneBit, 1);
-            CloneBit = null;
-            //});
+                CloneBit.Animation("Translate", OutputConnectors[1].Translate, 100, () =>
+                {
+                    EndAnimation(CloneBit, 1);
+                    CloneBit = null;
+                });
+            });
+
+            
         }
 
 

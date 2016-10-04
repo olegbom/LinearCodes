@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Animation.cs" />
     <Compile Include="Button.cs" />
+    <Compile Include="Connector.cs" />
     <Compile Include="DigitalComponent.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="Field.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="MatrixToVisual.cs" />
     <Compile Include="RadialMenu.cs" />
     <Compile Include="SimpleShader.cs" />
+    <Compile Include="StreamingComponent.cs" />
     <Compile Include="StreamingReceiver.cs" />
     <Compile Include="StreamingRegister.cs" />
     <Compile Include="StreamingSource.cs" />

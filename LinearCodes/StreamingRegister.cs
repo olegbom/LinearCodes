@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace LinearCodes
 {
-    public class StreamingRegister: StreamingVisual
+    public class StreamingRegister: StreamingComponent
     {
         private string _word = "RG";
 
@@ -44,13 +45,15 @@ namespace LinearCodes
             : base(simpleShader,  1, 1)
         {
             Size = new Vector2(Delta * 6, Delta * 2);
-            Body = new DigitalComponent(SimpleShader)
-            {
-                PinsCount = 1,
-                Delta = Delta,
-            };
-            Body.CreateBuffer();
-            Childrens.Add(Body);
+            InstasingList.Add(new VisualUniforms(Color4.Black));
+            var vertices = new List<Vector2>();
+            vertices.AddRange(Rectangle(
+                new Vector2(Delta, 0),
+                new Vector2(Delta*5, Delta*2), 2));
+            Shape = vertices.ToArray();
+           
+            CreateInput(0, ConnectorOrientation.Left, new Vector2(0,Delta));
+            CreateOutput(0, ConnectorOrientation.Right, new Vector2(Delta*6,Delta));
 
             GlyphWord.CollectionChanged += (s, e) =>
             {
@@ -97,22 +100,6 @@ namespace LinearCodes
                     MemoryGlyph = Bits[0];
                     Bits[0] = null;
                 });
-        }
-
-
-
-
-
-        public override Vector2 InputPosition(int num)
-        {
-            if (num >= InCount) throw new IndexOutOfRangeException();
-            return Translate + new Vector2(0, Delta);
-        }
-
-        public override Vector2 OutputPosition(int num)
-        {
-            if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Translate + new Vector2(6*Delta, Delta); 
         }
 
         public class GlyphPosAnimation: IDisposable

@@ -43,7 +43,7 @@ namespace LinearCodes
                         pointB - new Vector2(Delta*0.5f,Delta*0.3f),
                         pointB- new Vector2(Delta*0.1f,0),
                         pointB - new Vector2(Delta*0.5f,-Delta*0.3f)
-                    }, 2, 0.1f));
+                    }, 2));
             }
             
             pointB = new Vector2(Delta * 6, PinsCount * Delta);

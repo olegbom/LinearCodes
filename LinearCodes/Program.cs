@@ -179,6 +179,14 @@ namespace LinearCodes
                 //this.Animation("Scale", newScale, 200);
             };
 
+            KeyPress += (s, a) =>
+            {
+                if (a.KeyChar == ' ')
+                {
+                    Field.KeyPressSpace();
+                }
+            };
+
         }
 
 

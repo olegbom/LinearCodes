@@ -39,7 +39,7 @@ namespace LinearCodes
         protected DrawingVisual[] Sectors;
         protected StreamingRegister Register;
         protected StreamingSummator Summator;
-        protected StreamingWire Wire;
+        protected StreamingSplitter Splitter;
 
         public int ItemsCount { get; } = 4;
         public int Delta { get; set; } = 10;
@@ -96,7 +96,7 @@ namespace LinearCodes
             CreateRegister();
 
             CreateSummator();
-            CreateWire();
+            CreateSplitter();
 
             // Register = new StreamingRegister(simpleShader, Visuals);
             // Register.Delta = Delta;
@@ -122,21 +122,14 @@ namespace LinearCodes
             Childrens.Add(Summator);
         }
 
-        private void CreateWire()
+        private void CreateSplitter()
         {
-            Wire = new StreamingWire(SimpleShader);
+            Splitter = new StreamingSplitter(SimpleShader);
             float arg = (float)(2 * Math.PI * 2 / ItemsCount + Math.PI / ItemsCount * 2);
             var cos = MiddleRadius * (float)Math.Cos(arg);
             var sin = MiddleRadius * (float)Math.Sin(arg);
-            Wire.Translate = new Vector2(cos, sin);
-            Wire.CreateBuffers(new[]
-            {
-                    new Vector2(-Delta*2,Delta*2),
-                    new Vector2(-Delta*2,0),
-                    new Vector2(Delta*2,0),
-                    new Vector2(Delta*2,-Delta*2),
-                });
-            Childrens.Add(Wire);
+            Splitter.Translate = new Vector2(cos, sin);
+            Childrens.Add(Splitter);
         }
 
         private void ArrowUpdate(float arrowLenght)
@@ -212,9 +205,9 @@ namespace LinearCodes
                     CreateSummator();
                     break;
                 case 2:
-                    Field.AddingStreamingVisual(Wire, Translate);
-                    Childrens.Remove(Wire);
-                    CreateWire();
+                    Field.AddingStreamingVisual(Splitter, Translate);
+                    Childrens.Remove(Splitter);
+                    CreateSplitter();
                     break;
                 case 3:
                     break;

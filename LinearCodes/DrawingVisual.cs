@@ -276,7 +276,7 @@ namespace LinearCodes
             return result;
         }
 
-        public static Vector2[] Polyline(IEnumerable<Vector2> points, float thickness = 1.0f, float z = 0.0f)
+        public static Vector2[] Polyline(IEnumerable<Vector2> points, float thickness = 1.0f)
         {
             if(points == null) return new Vector2[0];
             Vector2[] pointsV2 = points as Vector2[] ?? points.ToArray();

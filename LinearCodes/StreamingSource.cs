@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
 {
-    public class StreamingSource: StreamingVisual
+    public class StreamingSource: StreamingComponent
     {
 
 
@@ -37,13 +37,14 @@ namespace LinearCodes
             var vertices = new List<Vector2>();
             vertices.AddRange(Polyline(new[]
             {
-                new Vector2(Delta*(Message.Length+1), 0),
+                new Vector2(Delta*Message.Length, 0),
                 new Vector2(-1,0),
                 new Vector2(-1, Delta*2),
                 new Vector2(Delta*Message.Length, Delta*2)
             }, 2));
-            vertices.AddRange(Circle(
-                new Vector2(Delta*(Message.Length + 1), 0),3,15));
+            
+            CreateOutput(0, ConnectorOrientation.Right, new Vector2(Delta * (Message.Length+1), 0));
+
             Shape = vertices.ToArray();
 
         }
@@ -69,16 +70,6 @@ namespace LinearCodes
                 });
         }
 
-        public override Vector2 InputPosition(int num)
-        {
-            if (num >= InCount) throw new IndexOutOfRangeException();
-            return Translate;
-        }
-
-        public override Vector2 OutputPosition(int num)
-        {
-            if (num >= OutCount) throw new IndexOutOfRangeException();
-            return Translate + new Vector2(Delta * (Message.Length + 1), 0);
-        }
+   
     }
 }

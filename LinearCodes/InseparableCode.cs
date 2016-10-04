@@ -159,7 +159,7 @@ namespace LinearCodes
             points.Add(posOut);
             points.AddRange(middlePoints);
             points.Add(posIn);
-            wire.CreateBuffers(points);
+            wire.Path = points;
             from.ConnectTo(outNum, wire, 0);
             wire.ConnectTo(0, to, inNum);
         }
@@ -174,7 +174,7 @@ namespace LinearCodes
                  to.InputPosition(inNum)
             };
 
-            wire.CreateBuffers(points);
+            wire.Path = points;
             from.ConnectTo(outNum, wire, 0);
             wire.ConnectTo(0, to, inNum);
         }
