@@ -48,7 +48,7 @@ namespace LinearCodes
                 if (value == _translate) return;
                 _translate = value;
                 
-                _translate = Vector2.ComponentMax(Vector2.Zero, _translate);
+               // _translate = Vector2.ComponentMax(Vector2.Zero, _translate); 
                 UpdateprojectionMatrix();
             }
         }
@@ -84,7 +84,7 @@ namespace LinearCodes
             
             //menu = new RadialMenu(SimpleShader);
             Field = new Field(Width, Height, SimpleShader);
-            menu = new RadialMenu(SimpleShader);
+            menu = new RadialMenu(Field, SimpleShader);
             var delta = 10;
 
            
@@ -92,59 +92,72 @@ namespace LinearCodes
             GL.ClearColor(Color.Beige);
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.AlphaTest);
-            GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+          
             //  GL.PointSize(2);
 
 
-            SimpleShader.UniformModelMatrix.Value = Matrix4.Identity;
+            SimpleShader.UniformModelMatrix.Value = new Matrix3x2(1, 0, 0, 1, 0, 0);
             
 
             Random r = new Random();
 
             Vector2 coordMouseDown = new Vector2(0,0);
-            bool mouseClicked = false;
+            bool mouseScrollClicked = false;
             Vector2 oldTranslate = Translate;
            
             MouseDown += (s, a) =>
             {
-                Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
-                if(a.Button == MouseButton.Left)
+                Vector2 mousePos = PointToMouseCoord(a.Position);
+                Vector2 mouseFieldPos = PositionToFieldCoord(mousePos);
+                if (a.Button == MouseButton.Middle)
                 {
-                    
                     coordMouseDown = mousePos;
-                    mouseClicked = true;
+                    mouseScrollClicked = true;
                     oldTranslate = Translate;
-                    InseparableCode.MouseDown((mousePos+Translate)/Scale);
+                }
+                if (a.Button == MouseButton.Left)
+                {
+                    InseparableCode.MouseDown(mouseFieldPos);
+                    Field.MouseDown(mouseFieldPos);
                 }
                 if (a.Button == MouseButton.Right)
                 {
-                    menu.Translate = (mousePos + Translate)/Scale;
+                    menu.Translate = mouseFieldPos;
                     menu.Visible = true;
                 }
             };
             MouseMove += (s, a) =>
             {
-                Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
-                if (mouseClicked)
+                Vector2 mousePos = PointToMouseCoord(a.Position);
+                Vector2 mouseFieldPos = PositionToFieldCoord(mousePos);
+                if (mouseScrollClicked)
                 {
                     Translate = oldTranslate + coordMouseDown - mousePos;
                 }
-                InseparableCode.MouseMove((mousePos + Translate) /Scale);
+                InseparableCode.MouseMove(mouseFieldPos);
+                Field.MouseMove(mouseFieldPos);
                 if (menu.Visible)
                 {
-                    menu.MouseMove((mousePos + Translate) / Scale);
+                    menu.MouseMove(mouseFieldPos);
                 }
             };
             MouseUp += (s, a) =>
             {
+                Vector2 mousePos = PointToMouseCoord(a.Position);
+                Vector2 mouseFieldPos = PositionToFieldCoord(mousePos);
                 if (a.Button == MouseButton.Left)
                 {
-                    mouseClicked = false;
-                    Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
+                    Field.MouseUp(mouseFieldPos);
+                }
+                if (a.Button == MouseButton.Middle)
+                {
+                    mouseScrollClicked = false;
                 }
                 if (a.Button == MouseButton.Right)
                 {
+                    
+                    menu.MouseUp(mouseFieldPos);
                     menu.Visible = false;
                 }
             };
@@ -167,10 +180,13 @@ namespace LinearCodes
             };
 
         }
-          
 
-        
-      
+
+        private Vector2 PointToMouseCoord(Point point) => new Vector2(point.X, Height - point.Y);
+        private Vector2 PositionToFieldCoord(Vector2 vec) => (vec + Translate)/Scale;
+
+
+
 
         protected override void OnResize(EventArgs e)
         {
@@ -181,10 +197,23 @@ namespace LinearCodes
 
         protected void UpdateprojectionMatrix()
         {
-            SimpleShader.UniformProjectionMatrix.Value = Matrix4.CreateOrthographicOffCenter(Translate.X / Scale, (Width + Translate.X)/ Scale,
-                Translate.Y / Scale, (Height+Translate.Y)/Scale, -1, 1);
+            SimpleShader.UniformProjectionMatrix.Value = OrtographicMatrix3x2(Translate.X/Scale,
+                (Width + Translate.X)/Scale, Translate.Y/Scale, (Height + Translate.Y)/Scale);
+            
         }
 
+
+        protected Matrix3x2 OrtographicMatrix3x2(float left, float right, float bottom, float top)
+        {
+            var result = Matrix3x2.Zero;
+            var width = right - left;
+            var height = top - bottom;
+            result.M11 = 2/width;
+            result.M22 = 2/height;
+            result.M31 = -(right + left)/width;
+            result.M32 = -(top + bottom)/height;
+            return result;
+        }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -209,14 +238,14 @@ namespace LinearCodes
         {
             AnimationStatic.NextFrame(e.Time * 1000);
             grad += e.Time * 10;
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
             //   GL.LoadIdentity();
 
            
-            
+            Field.Draw();
             InseparableCode.Draw();
             menu.Draw();
-            Field.Draw();
+            
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), IntPtr.Zero, BufferUsageHint.StreamDraw);
             //// Fill newly allocated buffer
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), VBO, BufferUsageHint.StreamDraw);

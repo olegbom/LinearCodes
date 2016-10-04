@@ -11,7 +11,7 @@ namespace LinearCodes
     public class StreamingSummator: StreamingVisual
     {
 
-        public float Delta = 10;
+
         public bool Up = true;
         public bool Down = false;
 
@@ -22,12 +22,13 @@ namespace LinearCodes
         public StreamingSummator(SimpleShader simpleShader, int inCount)
             : base(simpleShader, inCount, 1)
         {
+            Size = new Vector2(Delta * 4, Delta * 4);
             InstasingList.Add(new VisualUniforms(Color4.Black));
 
-            var vertices = new List<Vector4>();
+            var vertices = new List<Vector2>();
 
             var center = new Vector2(Delta * 2,Delta * 2);
-            var round = Round(center, Delta, 2, 60, 0.1f);
+            var round = Round(center, Delta, 2, 60);
 
             vertices.AddRange(round);
             var l = new Vector2(Delta * 1.5f, Delta * 2);
@@ -38,13 +39,13 @@ namespace LinearCodes
                      r + new Vector2(Delta*1.5f, 0), 2));
             vertices.AddRange(Circle(
                      r + new Vector2(Delta * 1.5f, 0),
-                   3, 12, 0.1f));
+                   3, 12));
             vertices.AddRange(
                 Line(l - new Vector2(Delta * 0.5f, 0),
                      l - new Vector2(Delta * 1.5f, 0), 2));
             vertices.AddRange(Circle(
                      l - new Vector2(Delta * 1.5f, 0),
-                   3, 12, 0.1f));
+                   3, 12));
 
             vertices.AddRange(Polyline(new[]
             {
@@ -69,7 +70,7 @@ namespace LinearCodes
                          new Vector2(Delta * 2, Delta * 4), 2));
                 vertices.AddRange(Circle(
                     new Vector2(Delta * 2f,Delta * 4.0f),
-                    3, 12, 0.1f));
+                    3, 12));
             }
 
             if (Down)
@@ -85,7 +86,7 @@ namespace LinearCodes
                          new Vector2(Delta * 2, 0        ), 2));
                 vertices.AddRange(Circle(
                     new Vector2(Delta * 2f, 0),
-                    3, 12, 0.1f));
+                    3, 12));
             }
             
             Shape = vertices.ToArray();

@@ -31,11 +31,10 @@ namespace LinearCodes
 
             streamingSource = new StreamingSource(new[] { 0, 1, 1, 0 }, simpleShader)
             {
-                Delta = Delta,
                 Translate = new Vector2(Delta*1, Delta*11)
             };
 
-            Childrens.Add(streamingSource);
+            
            
 
             #region Register
@@ -45,10 +44,9 @@ namespace LinearCodes
             {
                 Registers[i] = new StreamingRegister(simpleShader)
                 {
-                    Delta = Delta,
                     Translate = new Vector2(Delta * 8 + i * Delta * 8, Delta * 10)
                 };
-                Childrens.Add(Registers[i]);
+                
             }
             
             #endregion
@@ -60,7 +58,6 @@ namespace LinearCodes
             Splitters = new StreamingSplitter[sumCount];
             Splitters[0] = new StreamingSplitter(simpleShader)
                 { Translate = new Vector2(Delta * 7, Delta * 11) };
-            Childrens.Add(Splitters[0]);
             Summators = new StreamingSummator[sumCount];
             for (int i = 1, j = 0; i < gx.Length; i++)
             {
@@ -69,17 +66,14 @@ namespace LinearCodes
                 Summators[j] = new StreamingSummator(simpleShader, 2)
                 {
                     Up = true,
-                    Delta = Delta,
                     Translate = new Vector2(Delta * 5 + i * Delta * 8, Delta * 3)
                 };
-                Childrens.Add(Summators[j]);
                 j++;
                 if (j >= sumCount) continue;
                 Splitters[j] = new StreamingSplitter(simpleShader)
                 {
                     Translate = new Vector2(Delta * 7 + i * Delta * 8, Delta * 11)
                 };
-                Childrens.Add(Splitters[j]);
                 ConnectWire(Splitters[j], 0, Summators[j-1], 1);
                 
             }
@@ -106,10 +100,9 @@ namespace LinearCodes
 
             streamingReceiver = new StreamingReceiver(simpleShader)
             {
-                Delta = Delta,
                 Translate = new Vector2(Delta*2 + Delta*gx.Length*8, Delta*5)
             };
-            Childrens.Add(streamingReceiver);
+           
             ConnectWire(streamingSource, 0, Splitters[0], 0);
             ConnectWire(Splitters[0], 0, Summators[0], 0, 
                 new[] { new Vector2(Delta * 7, Delta * 5) });
@@ -118,6 +111,17 @@ namespace LinearCodes
                 new[] { new Vector2(Delta * gx.Length * 8 - Delta*1, Delta * 11) });
 
             ConnectWire(Summators.Last(), 0, streamingReceiver, 0);
+
+            
+            foreach (var reg in Registers)
+                Childrens.Add(reg);
+            foreach (var spl in Splitters)
+                Childrens.Add(spl);
+            foreach (var summ in Summators)
+                Childrens.Add(summ);
+
+            Childrens.Add(streamingSource);
+            Childrens.Add(streamingReceiver);
 
 
             ButtonTickZero = new Button(Delta, simpleShader) {Translate = new Vector2(Delta*4, Delta*10)};

@@ -17,17 +17,18 @@ namespace LinearCodes
         public int vId { get; }
         public int vao { get; }
 
-        private Vector4[] _shape;
+        private Vector2[] _shape;
 
-        public Vector4[] Shape
+        public Vector2[] Shape
         {
             get{ return _shape;}
             set
             {
                 _shape = value;
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
-                var size = (IntPtr)(Vector4.SizeInBytes * _shape.Length);
+                var size = (IntPtr)(Vector2.SizeInBytes * _shape.Length);
                 GL.BufferData(BufferTarget.ArrayBuffer, size, _shape, BufferUsageHint.StreamDraw);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             }
         }
 
@@ -35,18 +36,18 @@ namespace LinearCodes
 
         public ObservableCollection<VisualUniforms> InstasingList { get; }= new ObservableCollection<VisualUniforms>();
         public ObservableCollection<DrawingVisual> Childrens { get; } = new ObservableCollection<DrawingVisual>();
-        private Matrix4 _modelMatrix = Matrix4.Identity;
-        public override Matrix4 ModelMatrix
+        private Matrix3x2 _modelMatrix = new Matrix3x2(1, 0, 0, 1, 0, 0);
+        public override Matrix3x2 ModelMatrix
         {
             get { return _modelMatrix; }
             protected set
             {
                 _modelMatrix = value;
                 foreach (var visualUniformse in InstasingList)
-                    visualUniformse.ParentModelMatrix4 = _modelMatrix;
+                    visualUniformse.ParentModelMatrix = _modelMatrix;
                 
                 foreach (var drawingVisual in Childrens)
-                    drawingVisual.ParentModelMatrix4 = _modelMatrix;
+                    drawingVisual.ParentModelMatrix = _modelMatrix;
                 
             }
         }
@@ -58,14 +59,14 @@ namespace LinearCodes
             {
                 if (e.NewItems == null) return;
                 foreach (VisualUniforms visualUniformse in e.NewItems)
-                    visualUniformse.ParentModelMatrix4 = _modelMatrix;
+                    visualUniformse.ParentModelMatrix = _modelMatrix;
             };
 
             Childrens.CollectionChanged += (s, e) =>
             {
                 if (e.NewItems == null) return;
                 foreach (DrawingVisual drawingVisual in e.NewItems)
-                    drawingVisual.ParentModelMatrix4 = _modelMatrix;
+                    drawingVisual.ParentModelMatrix = _modelMatrix;
             };
 
             vId = GL.GenBuffer();
@@ -76,14 +77,14 @@ namespace LinearCodes
 
             var vertexPos = SimpleShader.GetAttribLocation("position");
             GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
-            GL.VertexAttribPointer(vertexPos, 4, VertexAttribPointerType.Float, false, Vector4.SizeInBytes, IntPtr.Zero);
+            GL.VertexAttribPointer(vertexPos, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, IntPtr.Zero);
             GL.EnableVertexAttribArray(vertexPos);
         }
 
 
 
         // TODO : Должно частично обновлять данные
-        public void UpdateData(int offset, Vector4[] newData)
+        public void UpdateData(int offset, Vector2[] newData)
         {
             if (offset + newData.Length <= _shape.Length)
             {
@@ -91,7 +92,7 @@ namespace LinearCodes
                     _shape[i + offset] = newData[i];
 
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
-                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(Vector4.SizeInBytes* offset), Vector4.SizeInBytes * newData.Length, _shape);
+                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(Vector2.SizeInBytes* offset), Vector2.SizeInBytes * newData.Length, _shape);
             }
             else throw new Exception("Превышение размера массива Shape");
         }
@@ -136,15 +137,15 @@ namespace LinearCodes
 
         #region Static
 
-        public static Vector4[] Line(float x1, float y1, float x2, float y2,
-             float thickness = 1.0f, float z = 0.0f)
+        public static Vector2[] Line(float x1, float y1, float x2, float y2,
+             float thickness = 1.0f)
         {
-            return Line(new Vector2(x1, y1), new Vector2(x2, y2), thickness, z);
+            return Line(new Vector2(x1, y1), new Vector2(x2, y2), thickness);
         }
 
-        public static Vector4[] Line(Vector2 v1, Vector2 v2, float thickness = 1.0f, float z = 0.0f)
+        public static Vector2[] Line(Vector2 v1, Vector2 v2, float thickness = 1.0f)
         {
-            var result = new Vector4[6];
+            var result = new Vector2[6];
             Vector2 vec = GetNormal(v1,v2);
             thickness /= 2;
             var v1l = v1 + vec * thickness;
@@ -152,48 +153,48 @@ namespace LinearCodes
             var v2l = v2 + vec * thickness;
             var v2r = v2 - vec * thickness;
             
-            result[1] = result[0] = new Vector4(v1l.X, v1l.Y, z, 1);
-            result[2] = new Vector4(v1r.X, v1r.Y, z, 1);
-            result[3] = new Vector4(v2l.X, v2l.Y, z, 1);
-            result[5] = result[4] = new Vector4(v2r.X, v2r.Y, z, 1);
+            result[1] = result[0] = new Vector2(v1l.X, v1l.Y);
+            result[2] = new Vector2(v1r.X, v1r.Y);
+            result[3] = new Vector2(v2l.X, v2l.Y);
+            result[5] = result[4] = new Vector2(v2r.X, v2r.Y);
              
             return result;
         }
 
-        public static Vector4[] Rectangle(Vector2 v1, Vector2 v2, 
-            float thickness = 1.0f, float z = 0.0f)
+        public static Vector2[] Rectangle(Vector2 v1, Vector2 v2, 
+            float thickness = 1.0f)
         {
             var vec1 = new Vector2(Math.Min(v1.X,v2.X), Math.Min(v1.Y,v2.Y));
             var vec2 = new Vector2(Math.Max(v1.X,v2.X), Math.Max(v1.Y,v2.Y));
             v1 = vec1;
             v2 = vec2;
 
-            var result = new Vector4[12];
+            var result = new Vector2[12];
 
 
-            result[9] = result[1] = result[0] = new Vector4(v1.X, v1.Y, z, 1);
+            result[9] = result[1] = result[0] = new Vector2(v1.X, v1.Y);
             result[11] = result[10] = result[2] = result[1]
-                + new Vector4(thickness, thickness, 0, 0);
+                + new Vector2(thickness, thickness);
 
-            result[3] = new Vector4(v2.X, v1.Y, z, 1);
-            result[4] = result[3] + new Vector4(-thickness, thickness, 0, 0);
+            result[3] = new Vector2(v2.X, v1.Y);
+            result[4] = result[3] + new Vector2(-thickness, thickness);
 
-            result[5] = new Vector4(v2.X, v2.Y, z, 1);
-            result[6] = result[5] + new Vector4(-thickness, -thickness, 0, 0);
+            result[5] = new Vector2(v2.X, v2.Y);
+            result[6] = result[5] + new Vector2(-thickness, -thickness);
 
-            result[7] = new Vector4(v1.X, v2.Y, z, 1);
-            result[8] = result[7] + new Vector4(thickness, -thickness, 0, 0);
+            result[7] = new Vector2(v1.X, v2.Y);
+            result[8] = result[7] + new Vector2(thickness, -thickness);
 
             return result;
         }
         
-        public static Vector4[] Round(Vector2 center, float r,
-             float thickness = 1.0f, int resolution = 30, float z = 0.0f)
+        public static Vector2[] Round(Vector2 center, float r,
+             float thickness = 1.0f, int resolution = 30)
         {
-            if (resolution < 3) return new Vector4[0];
+            if (resolution < 3) return new Vector2[0];
 
             var count = (resolution + 2) * 2;
-            var result = new Vector4[count];
+            var result = new Vector2[count];
             var halfT = thickness / 2;
 
             var r0 = r - halfT;
@@ -201,10 +202,9 @@ namespace LinearCodes
             var p0 = center + new Vector2(r1, 0);
             var p1 = center + new Vector2(r0, 0);
 
-            var v0 = new Vector4(p0.X, p0.Y, z, 1);
-            result[count - 3] = result[1] = result[0] = v0;
-            var v1 = new Vector4(p1.X, p1.Y, z, 1);
-            result[count - 1] = result[count - 2] = result[2] = v1;
+
+            result[count - 3] = result[1] = result[0] = new Vector2(p0.X, p0.Y);
+            result[count - 1] = result[count - 2] = result[2] = new Vector2(p1.X, p1.Y);
 
             for (int i = 1; i < resolution; i++)
             {
@@ -212,22 +212,20 @@ namespace LinearCodes
                 var sin = (float)Math.Sin(arg);
                 var cos = (float)Math.Cos(arg);
 
-                var point0 = center + new Vector2(r1 * cos, r1 * sin);
-                var point1 = center + new Vector2(r0 * cos, r0 * sin);
-                result[1 + i * 2] = new Vector4(point0.X, point0.Y, z, 1);
-                result[2 + i * 2] = new Vector4(point1.X, point1.Y, z, 1);
+                result[1 + i * 2] = center + new Vector2(r1 * cos, r1 * sin);
+                result[2 + i * 2] = center + new Vector2(r0 * cos, r0 * sin);
             }
 
             return result;
         }
 
-        public static Vector4[] Sector(Vector2 center, float r, float angleStart, float angleStop,
-            float thickness = 1.0f, int resolution = 30, float z = 0.0f)
+        public static Vector2[] Sector(Vector2 center, float r, float angleStart, float angleStop,
+            float thickness = 1.0f, int resolution = 30)
         {
-            if (resolution < 3) return new Vector4[0];
+            if (resolution < 3) return new Vector2[0];
 
             var count = (resolution + 2) * 2;
-            var result = new Vector4[count];
+            var result = new Vector2[count];
             var halfT = thickness / 2;
 
             var r0 = r - halfT;
@@ -238,11 +236,8 @@ namespace LinearCodes
                 var arg = (float)i / resolution * (angleStop - angleStart) + angleStart;
                 var sin = (float)Math.Sin(arg);
                 var cos = (float)Math.Cos(arg);
-
-                var point0 = center + new Vector2(r1 * cos, r1 * sin);
-                var point1 = center + new Vector2(r0 * cos, r0 * sin);
-                result[1 + i * 2] = new Vector4(point0.X, point0.Y, z, 1);
-                result[2 + i * 2] = new Vector4(point1.X, point1.Y, z, 1);
+                result[1 + i * 2] = center + new Vector2(r1 * cos, r1 * sin);
+                result[2 + i * 2] = center + new Vector2(r0 * cos, r0 * sin);
             }
             result[0] = result[1];
             result[count - 1] = result[count - 2];
@@ -251,15 +246,14 @@ namespace LinearCodes
 
 
 
-        public static Vector4[] Circle(Vector2 center, float r, 
-            int resolution = 30, float z = 0.0f)
+        public static Vector2[] Circle(Vector2 center, float r, 
+            int resolution = 30)
         {
-            if (resolution < 3) return new Vector4[0];
+            if (resolution < 3) return new Vector2[0];
             var count = resolution + 2;
-            var result = new Vector4[count];
+            var result = new Vector2[count];
 
-            var p0 = center + new Vector2(r, 0);
-            var v0 = new Vector4(p0.X, p0.Y, z, 1);
+            var v0 = center + new Vector2(r, 0);
                 
             result[1] = result[0] = v0;
 
@@ -268,8 +262,7 @@ namespace LinearCodes
                 var arg = (float)i / resolution * Math.PI;
                 var sin = (float)Math.Sin(arg);
                 var cos = (float)Math.Cos(arg);
-                var point0 = center + new Vector2(r * cos, r * sin);   
-                result[i] = new Vector4(point0.X, point0.Y, z, 1);
+                result[i] = center + new Vector2(r * cos, r * sin);
             }
 
             for (int i = 3; i < count - 1; i += 2)
@@ -277,29 +270,28 @@ namespace LinearCodes
                 var arg = (double)(resolution - i + 1) / resolution * Math.PI + Math.PI;
                 var sin = (float)Math.Sin(arg);
                 var cos = (float)Math.Cos(arg);
-                var point0 = center + new Vector2(r * cos, r * sin);
-                result[i] = new Vector4(point0.X, point0.Y, z, 1);
+                result[i] = center + new Vector2(r * cos, r * sin);
             }
             result[count - 1] = result[count - 2];
             return result;
         }
 
-        public static Vector4[] Polyline(IEnumerable<Vector2> points, float thickness = 1.0f, float z = 0.0f)
+        public static Vector2[] Polyline(IEnumerable<Vector2> points, float thickness = 1.0f, float z = 0.0f)
         {
-            if(points == null) return new Vector4[0];
+            if(points == null) return new Vector2[0];
             Vector2[] pointsV2 = points as Vector2[] ?? points.ToArray();
             var count = pointsV2.Length;
 
-            if (count < 2) return new Vector4[0];
+            if (count < 2) return new Vector2[0];
 
             var rCount = count*2 + 2;
-            var result = new Vector4[rCount];
+            var result = new Vector2[rCount];
 
 
             var polylineBegining = GetLineBegining(pointsV2[0], pointsV2[1], thickness);
 
-            result[1] = result[0] = ToVector4(polylineBegining[0], z);
-            result[2] = ToVector4(polylineBegining[1], z);
+            result[1] = result[0] = polylineBegining[0];
+            result[2] = polylineBegining[1];
 
             for (int i = 1; i < count - 1; i++)
             {
@@ -308,26 +300,26 @@ namespace LinearCodes
 
                 var rNum = i*2 + 1;
 
-                result[rNum] = ToVector4(polylineBending[0], z);
-                result[rNum + 1] = ToVector4(polylineBending[1], z);
+                result[rNum] = polylineBending[0];
+                result[rNum + 1] = polylineBending[1];
             }
 
 
             var polylineEnding = GetLineEnding(pointsV2[count-2], pointsV2[count-1], thickness);
-            result[rCount - 3] = ToVector4(polylineEnding[0], z);
-            result[rCount - 1] = result[rCount - 2] = ToVector4(polylineEnding[1], z);
+            result[rCount - 3] = polylineEnding[0];
+            result[rCount - 1] = result[rCount - 2] = polylineEnding[1];
 
             return result;
         }
 
-        public static Vector4[] GetFillRectangle(Vector2 p, float width, float height, float z = 0)
+        public static Vector2[] GetFillRectangle(Vector2 p, float width, float height, float z = 0)
         {
-            var result = new Vector4[6];
+            var result = new Vector2[6];
  
-            result[1] = result[0] = new Vector4(p.X, p.Y, z, 1);
-            result[2] = new Vector4(p.X + width, p.Y, z, 1);
-            result[3] = new Vector4(p.X , p.Y + height, z, 1);
-            result[5] = result[4] = new Vector4(p.X + width, p.Y + height, z, 1);
+            result[1] = result[0] = new Vector2(p.X, p.Y);
+            result[2] = new Vector2(p.X + width, p.Y);
+            result[3] = new Vector2(p.X , p.Y + height);
+            result[5] = result[4] = new Vector2(p.X + width, p.Y + height);
 
             return result;
         }
@@ -369,10 +361,7 @@ namespace LinearCodes
         }
 
 
-        public static Vector4 ToVector4(Vector2 v, float z)
-        {
-            return new Vector4(v.X, v.Y, z, 1);
-        }
+ 
 
         public static Vector2 GetNormal(Vector2 a, Vector2 b)
         {

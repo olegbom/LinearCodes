@@ -11,13 +11,13 @@ namespace LinearCodes
     public class StreamingReceiver: StreamingVisual
     {
         public List<Glyph7x5> BitMessage { get; } = new List<Glyph7x5>();
-        public float Delta = 10;
 
         public StreamingReceiver(SimpleShader simpleShader) : base(simpleShader,  1, 0)
         {
+            Size = new Vector2(Delta*8, Delta*2);
             InstasingList.Add(new VisualUniforms(Color4.Black));
 
-            var vertices = new List<Vector4>();
+            var vertices = new List<Vector2>();
             vertices.AddRange(Polyline(new[]
             {
                 new Vector2(0, 0),
@@ -25,7 +25,7 @@ namespace LinearCodes
                 new Vector2(Delta*8, Delta*2),
                 new Vector2(Delta, Delta*2)
             }, 2));
-            vertices.AddRange(Circle(new Vector2(0,0),3, 15,0.2f));
+            vertices.AddRange(Circle(new Vector2(0,0),3, 15));
             Shape = vertices.ToArray();
 
         }

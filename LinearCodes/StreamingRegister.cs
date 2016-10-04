@@ -7,7 +7,6 @@ namespace LinearCodes
 {
     public class StreamingRegister: StreamingVisual
     {
-        public float Delta = 10;
         private string _word = "RG";
 
         public string Word
@@ -44,7 +43,7 @@ namespace LinearCodes
         public StreamingRegister(SimpleShader simpleShader) 
             : base(simpleShader,  1, 1)
         {
-            
+            Size = new Vector2(Delta * 6, Delta * 2);
             Body = new DigitalComponent(SimpleShader)
             {
                 PinsCount = 1,

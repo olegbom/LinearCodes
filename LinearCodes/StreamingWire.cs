@@ -45,8 +45,13 @@ namespace LinearCodes
 
         public void CreateBuffers(IEnumerable<Vector2> path)
         {
+
+
             Path = path as List<Vector2> ?? path.ToList();
-           
+            var width = Path.Max(v => v.X) - Path.Min(v => v.X) + Thickness + 2;
+            var height = Path.Max(v => v.Y) - Path.Min(v => v.Y) + Thickness + 2;
+            Size = new Vector2(width, height);
+
             Shape = Polyline(path, Thickness+2.0f);
             
             MovingWire = new DrawingVisual(SimpleShader);
@@ -58,10 +63,11 @@ namespace LinearCodes
             MovingCircle = new DrawingVisual(SimpleShader);
             MovingCircle.InstasingList.Add(new VisualUniforms(Color4.Black));
             MovingCircle.Scale = new Vector2(0,0);
-            MovingCircle.Shape = Circle(Vector2.Zero, Thickness/2, 10, 0.2f);
+            MovingCircle.Shape = Circle(Vector2.Zero, Thickness/2, 10);
             
-            Childrens.Add(MovingWire);
+            
             Childrens.Add(OldMovingWire);
+            Childrens.Add(MovingWire);
             Childrens.Add(MovingCircle);
         }
 

@@ -83,6 +83,12 @@ namespace LinearCodes
                 (id, v) => GL.UniformMatrix4(id, false, ref v));
         }
 
+        public Uniform<Matrix3x2> GetUniformMatrix3x2(string name)
+        {
+            return new Uniform<Matrix3x2>(name, this,
+                (id, v) => GL.UniformMatrix3x2(id, false, ref v));
+        }
+
         public Uniform<Vector4> GetUniformVector4(string name)
         {
             return new Uniform<Vector4>(name, this,

@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
 {
@@ -43,8 +37,7 @@ namespace LinearCodes
 
         public float Thickness = 2.0f;
         public float PointRadius = 3.0f;
-        public float Z = 0.0f;
-        private List<Vector4> vertices = new List<Vector4>();
+        private List<Vector2> vertices = new List<Vector2>();
 
         public Wire(SimpleShader shader) : base(shader)
         {
@@ -53,23 +46,23 @@ namespace LinearCodes
 
         public void AddLine(Vector2 v1, Vector2 v2)
         {
-            vertices.AddRange(Line(v1, v2, Thickness, Z));
+            vertices.AddRange(Line(v1, v2, Thickness));
         }
 
         public void AddPolyline(Vector2[] points)
         {
-            vertices.AddRange(Polyline(points, Thickness, Z));
+            vertices.AddRange(Polyline(points, Thickness));
         }
 
         public void AddPoint(Vector2 v1)
         {
-            vertices.AddRange(Circle(v1, PointRadius, 30, Z));
+            vertices.AddRange(Circle(v1, PointRadius, 30));
         }
 
         public void AddPoint(Vector2 v1, float radius)
         {
             int resolution = (int)radius * 3;
-            vertices.AddRange(Circle(v1, radius, resolution, Z));
+            vertices.AddRange(Circle(v1, radius, resolution));
         }
 
         public void CreateBuffer()

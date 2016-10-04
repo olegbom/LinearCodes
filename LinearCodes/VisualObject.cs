@@ -1,42 +1,30 @@
 using System;
+using System.CodeDom;
 using OpenTK;
 using OpenTK.Platform.Windows;
 
 namespace LinearCodes
 {
+
+
     public abstract class VisualObject
     {
-        public virtual Matrix4 ModelMatrix { get; protected set; } = Matrix4.Identity;
+        public virtual Matrix3x2 ModelMatrix { get; protected set; } = new Matrix3x2(1, 0, 0, 1, 0, 0);
         
-        private Matrix4 _parentModelMatrix4 = Matrix4.Identity;
-        public Matrix4 ParentModelMatrix4
+        private Matrix3x2 _parentModelMatrix = new Matrix3x2(1, 0, 0, 1, 0, 0);
+        public Matrix3x2 ParentModelMatrix
         {
-            get { return _parentModelMatrix4; }
+            get { return _parentModelMatrix; }
             set
             {
-                _parentModelMatrix4 = value;
-                ModelMatrix = _individualModelMatrix*_parentModelMatrix4;
+                _parentModelMatrix = value;
+                ModelMatrix = Mul(_parentModelMatrix, _individualModelMatrix);
             }
         }
 
-        private Matrix4 _individualModelMatrix = Matrix4.Identity;
+        private Matrix3x2 _individualModelMatrix = new Matrix3x2(1, 0, 0, 1, 0, 0);
         
-        #region Z
-        private float _z;
-        public float Z
-        {
-            get { return _z; }
-            set
-            {
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (_z == value) return;
-                _z = value;
-                _individualModelMatrix.Row3 = new Vector4(_x, _y, _z, 1);
-                ModelMatrix = _individualModelMatrix * _parentModelMatrix4;
-            }
-        }
-        #endregion
-
+     
         #region Translate
         private Vector2 _translate = Vector2.Zero;
         public Vector2 Translate
@@ -46,8 +34,10 @@ namespace LinearCodes
             {
                 if (_translate == value) return;
                 _translate = value;
-                _individualModelMatrix.Row3 = new Vector4(_x, _y, _z, 1);
-                ModelMatrix = _individualModelMatrix * _parentModelMatrix4;
+                _individualModelMatrix.M31 = _x;
+                _individualModelMatrix.M32 = _y;
+
+                ModelMatrix = Mul(_parentModelMatrix, _individualModelMatrix);
             }
         }
 
@@ -67,10 +57,13 @@ namespace LinearCodes
                 _rotate = value;
                 var cos = (float)Math.Cos(_rotate);
                 var sin = (float)Math.Sin(_rotate);
-                _individualModelMatrix.Row0 = new Vector4(_scale.X * cos, _scale.Y * sin, 0, 0);
-                _individualModelMatrix.Row1 = new Vector4(-_scale.X * sin, _scale.Y * cos, 0, 0);
+                _individualModelMatrix.M11 = _scale.X * cos;
+                _individualModelMatrix.M12 = _scale.Y * sin;
+                _individualModelMatrix.M21 = -_scale.X * sin;
+                _individualModelMatrix.M22 = _scale.Y * cos;
 
-                ModelMatrix = _individualModelMatrix * _parentModelMatrix4;
+
+                ModelMatrix = Mul(_parentModelMatrix, _individualModelMatrix);
             }
         }
        
@@ -87,21 +80,33 @@ namespace LinearCodes
                 _scale = value;
                 var cos = (float)Math.Cos(_rotate);
                 var sin = (float)Math.Sin(_rotate);
-                _individualModelMatrix.Row0 = new Vector4(_scale.X * cos, _scale.Y * sin, 0, 0);
-                _individualModelMatrix.Row1 = new Vector4(-_scale.X * sin, _scale.Y * cos, 0, 0);
+                _individualModelMatrix.M11 = _scale.X * cos;
+                _individualModelMatrix.M12 = _scale.Y * sin;
+                _individualModelMatrix.M21 = -_scale.X * sin;
+                _individualModelMatrix.M22 = _scale.Y * cos;
 
-                ModelMatrix = _individualModelMatrix * _parentModelMatrix4;
+                ModelMatrix = Mul(_parentModelMatrix, _individualModelMatrix);
             }
         }
         #endregion
 
+        public static Matrix3x2 Mul(Matrix3x2 l, Matrix3x2 r)
+        {
+            return new Matrix3x2(l.M11 * r.M11 + l.M21 * r.M12,
+                                 l.M12 * r.M11 + l.M22 * r.M12,
+                                 l.M11 * r.M21 + l.M21 * r.M22,
+                                 l.M12 * r.M21 + l.M22 * r.M22,
+                                 l.M11 * r.M31 + l.M21 * r.M32 + l.M31,
+                                 l.M12 * r.M31 + l.M22 * r.M32 + l.M32);
+
+        }
+
         public void ClearIndividualMatrix()
         {
-            _z = 0;
             _scale = new Vector2(1,1);
             _rotate = 0;
             _translate = new Vector2(0,0);
-            _individualModelMatrix = Matrix4.Identity;
+            _individualModelMatrix = new Matrix3x2(1, 0, 0, 1, 0, 0);
         }
 
     }

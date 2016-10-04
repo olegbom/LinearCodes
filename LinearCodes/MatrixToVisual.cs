@@ -41,7 +41,7 @@ namespace LinearCodes
             var circleR = delta;
             var xLineRight = xRight;
             var xLineLeft = x0 + circleR;
-            InOutPins.Shape = Round(Vector2.Zero, circleR, 4.0f, 50, 0.1f);
+            InOutPins.Shape = Round(Vector2.Zero, circleR, 4.0f, 50);
 
 
 

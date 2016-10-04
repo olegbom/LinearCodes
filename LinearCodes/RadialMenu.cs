@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
@@ -31,6 +32,8 @@ namespace LinearCodes
             }
         }
 
+        public readonly Field Field;
+
         protected DrawingVisual RoundGrid;
         protected DrawingVisual Arrow;
         protected DrawingVisual[] Sectors;
@@ -46,42 +49,33 @@ namespace LinearCodes
        
 
 
-        public RadialMenu(SimpleShader simpleShader): base(simpleShader)
+        public RadialMenu(Field field, SimpleShader simpleShader): base(simpleShader)
         {
-            
-
+            Field = field;
             Scale = new Vector2(0,0);
 
             RoundGrid = new DrawingVisual(SimpleShader);
             RoundGrid.InstasingList.Add(new VisualUniforms(Color4.Black));
-            var vertices = new List<Vector4>();
-            vertices.AddRange(Round(new Vector2(0, 0), RadiusMenu, 2, 120, 0.4f));
-            vertices.AddRange(Round(new Vector2(0, 0), RadiusHole, 2, 120, 0.4f));
+            var vertices = new List<Vector2>();
+            vertices.AddRange(Round(new Vector2(0, 0), RadiusMenu, 2, 120));
+            vertices.AddRange(Round(new Vector2(0, 0), RadiusHole, 2, 120));
             for (double i = 0; i < Math.PI*2; i += Math.PI*2/ItemsCount)
             {
                 var arg = i + Math.PI/ItemsCount;
                 float sin = (float)Math.Sin(arg);
                 float cos = (float)Math.Cos(arg);
 
-                vertices.AddRange(DrawingVisual.Line(
+                vertices.AddRange(Line(
                     new Vector2(cos, sin)* RadiusHole,
                     new Vector2(cos, sin)* RadiusMenu,
-                    2, 0.5f));
+                    2));
             }
             RoundGrid.Shape = vertices.ToArray();
             Childrens.Add(RoundGrid);
 
             Arrow = new DrawingVisual(SimpleShader);
             Arrow.InstasingList.Add(new VisualUniforms(Color4.Black));
-            vertices = new List<Vector4>();
-            
-            vertices.AddRange(Polyline(new[] {
-                new Vector2(7, RadiusHole-10),
-                new Vector2(0, RadiusHole-2),
-                new Vector2(-7, RadiusHole-10),
-            },2,0.5f));
-            vertices.AddRange(Line(new Vector2(0,0), new Vector2(0, RadiusHole-2),2,0.5f ));
-            Arrow.Shape = vertices.ToArray();
+            ArrowUpdate(RadiusHole);
             Childrens.Add(Arrow);
 
             Sectors = new DrawingVisual[ItemsCount];
@@ -89,74 +83,84 @@ namespace LinearCodes
             {
                 Sectors[i] = new DrawingVisual(SimpleShader);
                 Sectors[i].InstasingList.Add(new VisualUniforms(Color4.AliceBlue));
-                vertices = new List<Vector4>();
+                vertices = new List<Vector2>();
                 float arg = (float)(i * Math.PI * 2 / ItemsCount + Math.PI / ItemsCount);
                 vertices.AddRange(Sector(new Vector2(0, 0), MiddleRadius, arg,
-                    arg + (float)Math.PI*2 / ItemsCount, RadiusMenu - RadiusHole,20, 0.3f));
+                    arg + (float)Math.PI*2 / ItemsCount, RadiusMenu - RadiusHole,20));
 
                 Sectors[i].Shape = vertices.ToArray();
                 Childrens.Add(Sectors[i]);
 
             }
 
-            {
-                Register = new StreamingRegister(SimpleShader);
-                var cos = MiddleRadius*(float) Math.Cos(Math.PI/ItemsCount*2);
-                var sin = MiddleRadius*(float) Math.Sin(Math.PI/ItemsCount*2);
-                Register.Translate = new Vector2(cos - Delta*3, sin - Delta*1.5f);
-                Register.Z = 0.5f;
-                Childrens.Add(Register);
-            }
+            CreateRegister();
 
-            {
-                Summator = new StreamingSummator(SimpleShader, 2);
-                float arg = (float)(Math.PI*2/ItemsCount + Math.PI/ItemsCount*2);
-                var cos = MiddleRadius * (float)Math.Cos(arg);
-                var sin = MiddleRadius * (float)Math.Sin(arg);
-                Summator.Translate = new Vector2(cos - Delta*2, sin - Delta*2);
-                Summator.Z = 0.5f;
-                Childrens.Add(Summator);
-            }
+            CreateSummator();
+            CreateWire();
 
-            {
-                Wire = new StreamingWire(SimpleShader);
-                float arg = (float)(2*Math.PI * 2 / ItemsCount + Math.PI / ItemsCount * 2);
-                var cos = MiddleRadius * (float)Math.Cos(arg);
-                var sin = MiddleRadius * (float)Math.Sin(arg);
-                Wire.Translate = new Vector2(cos, sin);
-                Wire.Z = 0.5f;
-                Wire.CreateBuffers(new []
-                {
-                    new Vector2(-Delta*2,Delta*2), 
-                    new Vector2(-Delta*2,0), 
-                    new Vector2(Delta*2,0), 
-                    new Vector2(Delta*2,-Delta*2), 
-                });
-                Childrens.Add(Wire);
-            }
-           
             // Register = new StreamingRegister(simpleShader, Visuals);
             // Register.Delta = Delta;
             // Register.Position = Translate + new Vector2(0, MiddleRadius);
         }
 
+        private void CreateRegister()
+        {
+            Register = new StreamingRegister(SimpleShader);
+            var cos = MiddleRadius * (float)Math.Cos(Math.PI / ItemsCount * 2);
+            var sin = MiddleRadius * (float)Math.Sin(Math.PI / ItemsCount * 2);
+            Register.Translate = new Vector2(cos - Delta*3, sin - Delta*1.5f);
+            Childrens.Add(Register);
+        }
+
+        private void CreateSummator()
+        {
+            Summator = new StreamingSummator(SimpleShader, 2);
+            float arg = (float)(Math.PI * 2 / ItemsCount + Math.PI / ItemsCount * 2);
+            var cos = MiddleRadius * (float)Math.Cos(arg);
+            var sin = MiddleRadius * (float)Math.Sin(arg);
+            Summator.Translate = new Vector2(cos - Delta * 2, sin - Delta * 2);
+            Childrens.Add(Summator);
+        }
+
+        private void CreateWire()
+        {
+            Wire = new StreamingWire(SimpleShader);
+            float arg = (float)(2 * Math.PI * 2 / ItemsCount + Math.PI / ItemsCount * 2);
+            var cos = MiddleRadius * (float)Math.Cos(arg);
+            var sin = MiddleRadius * (float)Math.Sin(arg);
+            Wire.Translate = new Vector2(cos, sin);
+            Wire.CreateBuffers(new[]
+            {
+                    new Vector2(-Delta*2,Delta*2),
+                    new Vector2(-Delta*2,0),
+                    new Vector2(Delta*2,0),
+                    new Vector2(Delta*2,-Delta*2),
+                });
+            Childrens.Add(Wire);
+        }
+
+        private void ArrowUpdate(float arrowLenght)
+        {
+            var vertices = new List<Vector2>();
+
+            vertices.AddRange(Polyline(new[] {
+                new Vector2(7, arrowLenght-10),
+                new Vector2(0, arrowLenght-2),
+                new Vector2(-7, arrowLenght-10),
+            }, 2));
+            vertices.AddRange(Line(new Vector2(0, 0), new Vector2(0, arrowLenght - 2), 2));
+            Arrow.Shape = vertices.ToArray();
+        }
 
         private int _oldIndex = -1;
-        internal void MouseMove(Vector2 mousePos)
+        public void MouseMove(Vector2 mousePos)
         {
             var vec = mousePos - Translate;
             Arrow.Rotate = (float)(Math.Atan2(vec.Y, vec.X) - Math.PI/2);
             var lenght = vec.Length;
             var arrowLenght = lenght;
             if (arrowLenght > RadiusHole) arrowLenght = RadiusHole;
-            var vertices = new List<Vector4>();
-            vertices.AddRange(Polyline(new[] {
-                new Vector2(5, arrowLenght-10),
-                new Vector2(0, arrowLenght-2),
-                new Vector2(-5, arrowLenght-10),
-            }, 2, 0.5f));
-            vertices.AddRange(Line(new Vector2(0, 0), new Vector2(0, arrowLenght - 2), 2, 0.5f));
-            Arrow.UpdateData(0,vertices.ToArray());
+            ArrowUpdate(arrowLenght);
 
 
             int index = -1;
@@ -180,5 +184,41 @@ namespace LinearCodes
             _oldIndex = index;
         }
 
+        public void MouseUp(Vector2 mousePos)
+        {
+            var vec = mousePos - Translate;
+            var lenght = vec.Length;
+            if (lenght > RadiusHole && lenght < RadiusMenu)
+            {
+                var index = (int) Math.Ceiling((Arrow.Rotate - Math.PI*2/ItemsCount)/Math.PI/2*ItemsCount + 0.5);
+                if (index >= ItemsCount) index = 0;
+                while (index < 0) index += ItemsCount;
+                AddStreamingVisualToFiled(index);
+            }
+        }
+
+        private void AddStreamingVisualToFiled(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    Field.AddingStreamingVisual(Register, Translate);
+                    Childrens.Remove(Register);
+                    CreateRegister();
+                    break;
+                case 1:
+                    Field.AddingStreamingVisual(Summator, Translate);
+                    Childrens.Remove(Summator);
+                    CreateSummator();
+                    break;
+                case 2:
+                    Field.AddingStreamingVisual(Wire, Translate);
+                    Childrens.Remove(Wire);
+                    CreateWire();
+                    break;
+                case 3:
+                    break;
+            }
+        }
     }
 }

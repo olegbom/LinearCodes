@@ -16,12 +16,14 @@ namespace LinearCodes
         public int[] Message { get; }
         public List<Glyph7x5> BitMessage { get; } = new List<Glyph7x5>();
 
-        public float Delta = 10;
-
         public StreamingSource(int[] message, SimpleShader simpleShader) 
             : base(simpleShader,  0, 1)
         {
+            
             Message = message;
+
+            Size = new Vector2(Delta * (Message.Length + 1), Delta * 2);
+
             InstasingList.Add(new VisualUniforms(Color4.Black));
             for (int i = 0; i < Message.Length; i++)
             {
@@ -32,7 +34,7 @@ namespace LinearCodes
                 BitMessage.Add(glyph);
                 Childrens.Add(glyph);
             }
-            var vertices = new List<Vector4>();
+            var vertices = new List<Vector2>();
             vertices.AddRange(Polyline(new[]
             {
                 new Vector2(Delta*(Message.Length+1), 0),
@@ -41,7 +43,7 @@ namespace LinearCodes
                 new Vector2(Delta*Message.Length, Delta*2)
             }, 2));
             vertices.AddRange(Circle(
-                new Vector2(Delta*(Message.Length + 1), 0),3,15,0.2f));
+                new Vector2(Delta*(Message.Length + 1), 0),3,15));
             Shape = vertices.ToArray();
 
         }

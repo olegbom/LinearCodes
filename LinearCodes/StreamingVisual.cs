@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
@@ -17,14 +18,42 @@ namespace LinearCodes
         public Edge[] Outputs { get; }
         public Glyph7x5[] Bits { get; }
 
+        private readonly DrawingVisual _frame;
+        public float Delta { get; } = 10;
 
+        private bool _isSelect;
+        public bool IsSelect
+        {
+            get { return _isSelect; }
+            set
+            {
+                _isSelect = value;
+                _frame.IsVisible = _isSelect;
+            }
+        }
 
+        private Vector2 _size;
+        public Vector2 Size
+        {
+            get { return _size; }
+            protected set
+            {
+                _size = value;
+                _frame.Shape = Rectangle(new Vector2(-Delta/2,-Delta/2), _size + new Vector2(Delta / 2, Delta / 2), 1f);
+            }
+        }
+        
         public int InCount { get; }
         public int OutCount { get; }
         
         public StreamingVisual(SimpleShader simpleShader, int inCount, int outCount) 
             : base(simpleShader)
         {
+
+            _frame = new DrawingVisual(simpleShader);
+            _frame.InstasingList.Add(new VisualUniforms(new Color4(0, 0, 1f, 0.3f)));
+            _frame.IsVisible = false;
+            Childrens.Add(_frame);
             InCount = inCount;
             OutCount = outCount;
             Inputs = new Edge[inCount];

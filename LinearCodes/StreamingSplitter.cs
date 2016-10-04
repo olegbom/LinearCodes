@@ -21,7 +21,6 @@ namespace LinearCodes
     public class StreamingSplitter: StreamingVisual
     {
         public float PointSize = 4.0f;
-        public float Z = 0.2f;
 
         public Glyph7x5 CloneBit;
 
@@ -34,8 +33,9 @@ namespace LinearCodes
         public StreamingSplitter(SimpleShader simpleShader) 
             : base(simpleShader,  1, 2)
         {
+            Size = new Vector2(8,8);
             InstasingList.Add(new VisualUniforms(Color4.Black));
-            Shape = Circle(Vector2.Zero, PointSize, 20, Z);
+            Shape = Circle(Vector2.Zero, PointSize, 20);
         }
 
         public override Vector2 InputPosition(int num)
