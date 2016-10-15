@@ -2,7 +2,6 @@
 using OpenTK;
 using OpenTK.Graphics;
 using Color = System.Drawing.Color;
-using System;
 
 namespace LinearCodes
 {
@@ -39,7 +38,6 @@ namespace LinearCodes
             var bigStep = delta*4;
             var xRight = x0 + 60*delta;
             var circleR = delta;
-            var xLineRight = xRight;
             var xLineLeft = x0 + circleR;
             InOutPins.Shape = Round(Vector2.Zero, circleR, 4.0f, 50);
 

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 
-namespace LinearCodes
+namespace LinearCodes.Streamings
 {
     public abstract class StreamingComponent: StreamingVisual
     {
@@ -51,6 +47,40 @@ namespace LinearCodes
         {
             if (num >= OutCount) throw new IndexOutOfRangeException();
             return Translate + OutputConnectors[num].Translate;
+        }
+
+        public bool MouseSelectInput(Vector2 mousePos, out int inIndex)
+        {
+            for (int i = 0; i < InCount; i++)
+            {
+                var div = InputPosition(i) - mousePos;
+                if (Inputs[i] == null && 
+                    Math.Abs(div.X) * 2 < Delta &&
+                    Math.Abs(div.Y) * 2 < Delta)
+                {
+                    inIndex = i;
+                    return true;
+                }
+            }
+            inIndex = -1;
+            return false;
+        }
+
+        public bool MouseSelectOutput(Vector2 mousePos, out int outIndex)
+        {
+            for (int i = 0; i < OutCount; i++)
+            {
+                var div = OutputPosition(i) - mousePos;
+                if (Outputs[i] == null &&
+                    Math.Abs(div.X) * 2 < Delta &&
+                    Math.Abs(div.Y) * 2 < Delta)
+                {
+                    outIndex = i;
+                    return true;
+                }
+            }
+            outIndex = -1;
+            return false;
         }
     }
 }

@@ -1,34 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using LinearCodes.Creator;
+using LinearCodes.Streamings;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Platform.Windows;
 
 namespace LinearCodes
 {
     public class Field: DrawingVisual
     {
+        public EmploymentMatrix EmploymentMatrix;
 
         public int Width { get; }
         public int Height { get; }
         public float Delta { get; } = 10;
 
 
+
         public List<StreamingComponent> StreamingComponents { get; } = new List<StreamingComponent>();
         public List<StreamingWire> Wires { get; } = new List<StreamingWire>();
-        public DrawingVisual CrossCursor { get; }
+        public CrossCursor CrossCursor { get; }
         public DrawingVisual SelectRectangle  { get; }
         
+        
+
         public Field(int width, int height, SimpleShader simpleShader): base(simpleShader)
         {
             Width = width;
             Height = height;
-            
+            EmploymentMatrix = new EmploymentMatrix(Width,Height);
+           
+
             List<Vector2> vertices = new List<Vector2>();
             for (int i = 0; i <= Height; i += (int)Delta)
             {
@@ -42,23 +45,9 @@ namespace LinearCodes
             Shape = vertices.ToArray();
             InstasingList.Add(new VisualUniforms(Color.LightGray));
 
-            CrossCursor = new DrawingVisual(simpleShader);
-            CrossCursor.InstasingList.Add(new VisualUniforms(Color.Black));
-            vertices.Clear();
-            int count = 5;
-            for (int i = 0; i < count; ++i)
-            {
-                double arg = Math.PI*2*i/count;
-                float cos = (float) Math.Cos(arg)*Delta/2;
-                float sin = (float) Math.Sin(arg) * Delta/2;
-
-                vertices.AddRange(Line(cos,sin,0,0,1));
-
-            }
-
-            
-            CrossCursor.Shape = vertices.ToArray();
-            Childrens.Add(CrossCursor);
+            CrossCursor = new CrossCursor(simpleShader);
+          
+         
 
             SelectRectangle = new DrawingVisual(simpleShader);
             SelectRectangle.InstasingList.Add(new VisualUniforms(new Color4(0,0,0.5f,0.2f)));
@@ -74,18 +63,28 @@ namespace LinearCodes
             StreamingComponents.Add(visual);
             Childrens.Add(visual);
             visual.Translate += translate;
-            visual.Animation("Translate", ToDiscret(translate), 250);
+            var discPosition = ToDiscret(translate);
+            visual.Animation("Translate", discPosition, 250);
+            EmploymentMatrix.MountingRectangle(discPosition, visual.Size);
         }
+
+    
 
         public Vector2 ToDiscret(Vector2 v)
         {
             return new Vector2((float)Math.Round(v.X / Delta) * Delta, (float)Math.Round(v.Y / Delta) * Delta);
         }
 
-        
+
+        public override void Draw()
+        {
+            base.Draw();
+            CrossCursor.Draw();
+        }
+
 
         private MouseDragVisualObject _dragStreamingVisual;
-        private InputWireCreator _inputWireCreator;
+        private WireCreator _wireCreator;
         private Vector2 _mouseDownPos;
         public void MouseDown(Vector2 mouseFieldPos)
         {
@@ -95,25 +94,19 @@ namespace LinearCodes
             {
                 if (streamingVis.Hit(mouseFieldPos))
                 {
-                    for (int i = 0; i < streamingVis.InCount; i++)
+                    int pin;
+                    if (streamingVis.MouseSelectInput(_mouseDownPos,out pin))
                     {
-                        if (streamingVis.Inputs[i] == null && 
-                            streamingVis.InputPosition(i) == _mouseDownPos)
-                        {
-                            _inputWireCreator = new InputWireCreator(streamingVis, i);
-                            Childrens.Add(_inputWireCreator.Wire);
-                            return;
-                        }
+                        _wireCreator = new InputWireCreator(streamingVis, pin, EmploymentMatrix);
+                        Childrens.Add(_wireCreator.Wire);
+                        return;
                     }
-                    for(int i = 0; i < streamingVis.OutCount; i++)
+                    if (streamingVis.MouseSelectOutput(_mouseDownPos, out pin))
                     {
-                        if (streamingVis.OutputPosition(i) == _mouseDownPos)
-                        {
-                            throw new NotImplementedException();
-                            break;
-                        }
+                        _wireCreator = new OutputWireCreator(streamingVis, pin, EmploymentMatrix);
+                        Childrens.Add(_wireCreator.Wire);
+                        return;
                     }
-
 
                     _dragStreamingVisual = new MouseDragVisualObject(streamingVis, _mouseDownPos);
                     streamingVis.IsSelect = !streamingVis.IsSelect;
@@ -138,10 +131,25 @@ namespace LinearCodes
             {
                 _dragStreamingVisual.MouseMovePos = newPos;
             }
-            if (_inputWireCreator != null)
+            if (_wireCreator != null)
             {
-                _inputWireCreator.MouseMovePos = newPos;
+                _wireCreator.MouseMovePos = newPos;
             }
+
+            bool hit = false;
+            foreach (var streamingVis in StreamingComponents)
+            {
+                if (!streamingVis.Hit(mouseFieldPos)) continue;
+                int pin;
+                if (streamingVis.MouseSelectInput(newPos, out pin) ||
+                    streamingVis.MouseSelectOutput(newPos, out pin))
+                {
+                    hit = true;
+                    break;
+                }
+            }
+            CrossCursor.OnPin = hit;
+
 
             CrossCursor.Animation("Translate", newPos, 50);
         }
@@ -165,78 +173,59 @@ namespace LinearCodes
                 _dragStreamingVisual.Dispose();
                 _dragStreamingVisual = null;
             }
-            if (_inputWireCreator != null)
+            if (_wireCreator != null)
             {
-                _inputWireCreator.MouseMovePos = mouseUpPos;
-                _inputWireCreator.Connecting();
-                Wires.Add(_inputWireCreator.Wire);
-                _inputWireCreator.Dispose();
-                _inputWireCreator = null;
+                _wireCreator.MouseMovePos = mouseUpPos;
+                _wireCreator.Connecting();
+                var wire = _wireCreator.Wire;
+                var isOutputWireCreator = _wireCreator is OutputWireCreator;
+                var isInputWireCreator = _wireCreator is InputWireCreator;
+
+                _wireCreator.Dispose();
+                _wireCreator = null;
+                foreach (var streamingVis in StreamingComponents)
+                {
+                    if (!streamingVis.Hit(mouseFieldPos)) continue;
+                    if (isOutputWireCreator)
+                        for (int i = 0; i < streamingVis.InCount; i++)
+                        {
+                            var div = streamingVis.InputPosition(i) - _mouseDownPos;
+                            if (streamingVis.Inputs[i] == null &&
+                                Math.Abs(div.X)*2 < Delta && Math.Abs(div.Y)*2 < Delta)
+                            {
+                                wire.ConnectTo(0,streamingVis, i);
+                                Wires.Add(wire);
+                                break;
+                            }
+                        }
+                    else if (isInputWireCreator)
+                        for (int i = 0; i < streamingVis.OutCount; i++)
+                        {
+                            var div = streamingVis.OutputPosition(i) - _mouseDownPos;
+                            if (streamingVis.Outputs[i] == null &&
+                                Math.Abs(div.X)*2 < Delta && Math.Abs(div.Y)*2 < Delta)
+                            {
+                                streamingVis.ConnectTo(i, wire, 0);
+                                Wires.Add(wire);
+                                break;
+                            }
+                        }
+                    
+                }
+
+                
+
             }
         }
 
         public void KeyPressSpace()
         {
-            InputWireCreator.SourceFirst = !InputWireCreator.SourceFirst;
-            _inputWireCreator?.WireUpdate();
+            WireCreator.SourceFirst = !WireCreator.SourceFirst;
+            _wireCreator?.WireUpdate();
         }
 
-        private class InputWireCreator: IDisposable
-        {
-            public static bool SourceFirst = true;
-            public StreamingComponent Visual { get; private set; }
-            public Vector2 InputPosition { get; }
-            public int InputIndex { get; }
-            public StreamingWire Wire { get; private set; }
-            public InputWireCreator(StreamingComponent visual, int inputIndex)
-            {
-                Visual = visual;
-                InputIndex = inputIndex;
-                InputPosition = visual.InputPosition(InputIndex);
-                Wire = new StreamingWire(visual.SimpleShader);
-                Wire.Path = new List<Vector2> { InputPosition, InputPosition };
 
-            }
-
-            private Vector2 _mouseMovePos;
-
-            public Vector2 MouseMovePos
-            {
-                get { return _mouseMovePos; }
-                set
-                {
-                    _mouseMovePos = value;
-                    WireUpdate();
-                }
-            }
-
-            public void WireUpdate()
-            {
-                if (Math.Abs(InputPosition.X - MouseMovePos.X) < 0.1f ||
-                    Math.Abs(InputPosition.Y - MouseMovePos.Y) < 0.1f)
-                {
-                    Wire.Path = new List<Vector2> {
-                        InputPosition , MouseMovePos };
-                    return;
-                } 
-                Wire.Path = new List<Vector2> {
-                        InputPosition ,
-                        SourceFirst ? new Vector2(InputPosition.X, MouseMovePos.Y) 
-                                    : new Vector2(MouseMovePos.X, InputPosition.Y),
-                        MouseMovePos };
-            }
-
-            public void Connecting()
-            {
-                Wire.ConnectTo(0, Visual, InputIndex);
-            }
-
-            public void Dispose()
-            {
-                Wire = null;
-                Visual = null;
-            }
-        }
+        
 
         private class MouseDragVisualObject : IDisposable
         {

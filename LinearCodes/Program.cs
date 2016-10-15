@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Text;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Security.Permissions;
-using System.Timers;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-using QuickFont;
-using QuickFont.Configuration;
-using SharpFont;
 
 namespace LinearCodes
 {

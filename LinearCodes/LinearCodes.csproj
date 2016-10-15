@@ -63,22 +63,24 @@
     <Compile Include="Animation.cs" />
     <Compile Include="Button.cs" />
     <Compile Include="Connector.cs" />
+    <Compile Include="CrossCursor.cs" />
     <Compile Include="DigitalComponent.cs" />
     <Compile Include="Edge.cs" />
+    <Compile Include="EmploymentMatrix.cs" />
     <Compile Include="Field.cs" />
     <Compile Include="Glyph7x5.cs" />
     <Compile Include="InseparableCode.cs" />
     <Compile Include="MatrixToVisual.cs" />
     <Compile Include="RadialMenu.cs" />
     <Compile Include="SimpleShader.cs" />
-    <Compile Include="StreamingComponent.cs" />
-    <Compile Include="StreamingReceiver.cs" />
-    <Compile Include="StreamingRegister.cs" />
-    <Compile Include="StreamingSource.cs" />
-    <Compile Include="StreamingSplitter.cs" />
-    <Compile Include="StreamingSummator.cs" />
-    <Compile Include="StreamingVisual.cs" />
-    <Compile Include="StreamingWire.cs" />
+    <Compile Include="Streamings\StreamingComponent.cs" />
+    <Compile Include="Streamings\StreamingReceiver.cs" />
+    <Compile Include="Streamings\StreamingRegister.cs" />
+    <Compile Include="Streamings\StreamingSource.cs" />
+    <Compile Include="Streamings\StreamingSplitter.cs" />
+    <Compile Include="Streamings\StreamingSummator.cs" />
+    <Compile Include="Streamings\StreamingVisual.cs" />
+    <Compile Include="Streamings\StreamingWire.cs" />
     <Compile Include="DrawingVisual.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -87,6 +89,9 @@
     <Compile Include="VisualObject.cs" />
     <Compile Include="VisualUniforms.cs" />
     <Compile Include="Wire.cs" />
+    <Compile Include="Creator\InputWireCreator.cs" />
+    <Compile Include="Creator\OutputWireCreator.cs" />
+    <Compile Include="Creator\WireCreator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

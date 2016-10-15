@@ -1,7 +1,5 @@
 using System;
-using System.CodeDom;
 using OpenTK;
-using OpenTK.Platform.Windows;
 
 namespace LinearCodes
 {

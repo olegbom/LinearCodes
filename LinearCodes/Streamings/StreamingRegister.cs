@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace LinearCodes
+namespace LinearCodes.Streamings
 {
     public class StreamingRegister: StreamingComponent
     {

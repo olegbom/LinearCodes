@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Timers;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -151,7 +150,10 @@ namespace LinearCodes
             if (ani != null)
             {
                 if (animationIndex >= 0)
+                {
+                    AnimationList[animationIndex].Action?.Invoke();
                     AnimationList[animationIndex] = ani;
+                }
                 else
                     AnimationList.Add(ani);
             }

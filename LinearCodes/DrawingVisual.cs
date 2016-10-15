@@ -2,11 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace LinearCodes
@@ -104,7 +100,7 @@ namespace LinearCodes
             GL.BindBuffer(BufferTarget.ArrayBuffer, vId);
         }
 
-        public void Draw()
+        public virtual void Draw()
         {
             if (!IsVisible) return;
 
