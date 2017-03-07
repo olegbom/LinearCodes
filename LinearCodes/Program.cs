@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq.Expressions;
+using System.Timers;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -47,7 +50,7 @@ namespace LinearCodes
 
 
         public Program()
-            : base(900, 700, new GraphicsMode(32, 24, 8, 8), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 2,1,GraphicsContextFlags.Default)
+            : base(900, 700, new GraphicsMode(32, 24, 8, 8), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 3,3,GraphicsContextFlags.Default)
         {
             
              //VSync = VSyncMode.On;
@@ -61,7 +64,7 @@ namespace LinearCodes
             base.OnLoad(e);
 
 
-            SimpleShader = new SimpleShader("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+            SimpleShader = new SimpleShader("Shaders\\SimpleVertexShader.glsl", "Shaders\\SimpleFragmentShader.glsl");
             InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} , SimpleShader);
             //LinearMachine =new MatrixToVisual(new[,]
             //{
@@ -76,6 +79,9 @@ namespace LinearCodes
             //menu = new RadialMenu(SimpleShader);
             Field = new Field(Width, Height, SimpleShader);
             menu = new RadialMenu(Field, SimpleShader);
+
+            
+
             var delta = 10;
 
            
@@ -170,16 +176,55 @@ namespace LinearCodes
                 //this.Animation("Scale", newScale, 200);
             };
 
-            KeyPress += (s, a) =>
+            
+            KeyDown += (s, a) =>
             {
-                if (a.KeyChar == ' ')
+                if (a.Key == Key.Space)
                 {
                     Field.KeyPressSpace();
+                }else if (a.Key == Key.Delete || 
+                          a.Key == Key.BackSpace)
+                {
+                    Field.KeyDownRemove();
                 }
+
             };
 
+
+
+           
+
+
+            myStopwatch.Restart();
+            MyTestClass[] myTestClasses = new MyTestClass[10000];
+            for (int i = 0; i < 10000; i++)
+            {
+                myTestClasses[i]= new MyTestClass();
+                
+                myTestClasses[i].Animation(myTestClasses[i].Value, 1000, (o, p) => o.Value = p, 10000-i/100 + 100);
+                //myTestClasses[i].Animation("Value", 1000, 30000);
+            }
+            myStopwatch.Stop();
+            Console.WriteLine($"10000 objects animation {myStopwatch.ElapsedMilliseconds} ms");
+
+
+
+
+
+            Timer timer = new Timer(1000);
+            timer.Elapsed += (s, a) =>
+            {
+                Console.WriteLine($"FPS: {RenderFrequency:F2}, grad = {grad:F2}, {myTestClasses[5545].Value}");
+            };
+            timer.AutoReset = true;
+            timer.Start();
         }
 
+        class MyTestClass
+        {
+            public int Value { get; set; }
+            public bool TestBool;
+        }
 
         private Vector2 PointToMouseCoord(Point point) => new Vector2(point.X, Height - point.Y);
         private Vector2 PositionToFieldCoord(Vector2 vec) => (vec + Translate)/Scale;
@@ -217,8 +262,8 @@ namespace LinearCodes
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
 
-            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}";
-
+            
+            
             
             //    for (int i = 0; i < 600; i++)
             {
@@ -233,15 +278,22 @@ namespace LinearCodes
         }
 
 
+        Stopwatch myStopwatch = new Stopwatch();
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            myStopwatch.Restart();
             AnimationStatic.NextFrame(e.Time * 1000);
+            AnimationStatic.NextFrameLambda(e.Time * 1000);
+            myStopwatch.Stop();
+            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}, animation delay = {myStopwatch.ElapsedMilliseconds} ms";
+
+
             grad += e.Time * 10;
             GL.Clear(ClearBufferMask.ColorBufferBit);
             //   GL.LoadIdentity();
 
            
-            Field.Draw();
+            //Field.Draw();
             InseparableCode.Draw();
             menu.Draw();
             
@@ -272,7 +324,7 @@ namespace LinearCodes
                 // Get the title and category  of this example using reflection.
 
                 program.Title = "Линейные коды";
-                program.Run(0.0,60);
+                program.Run(30.0,60);
 
             }
         }

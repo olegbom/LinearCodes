@@ -108,6 +108,8 @@ namespace LinearCodes
             
             foreach (var visualUniform in InstasingList)
             {
+                //var col = visualUniform.Color;
+                //GL.MultiTexCoord4(TextureUnit.Texture0, col.R, col.G, col.B, col.A);
                 SimpleShader.UniformModelMatrix.Value = visualUniform.ModelMatrix;
                 SimpleShader.UniformColor.Value = visualUniform.Color;
                 GL.DrawArrays(PrimitiveType.TriangleStrip, 0, _shape.Length);

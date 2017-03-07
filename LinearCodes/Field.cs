@@ -54,8 +54,8 @@ namespace LinearCodes
             SelectRectangle.IsVisible = false;
             Childrens.Add(SelectRectangle);
 
-      
-
+           
+          
         }
         
         public void AddingStreamingVisual(StreamingComponent visual, Vector2 translate)
@@ -98,13 +98,13 @@ namespace LinearCodes
                     if (streamingVis.MouseSelectInput(_mouseDownPos,out pin))
                     {
                         _wireCreator = new InputWireCreator(streamingVis, pin, EmploymentMatrix);
-                        Childrens.Add(_wireCreator.Wire);
+                        Childrens.Insert(0,_wireCreator.Wire);
                         return;
                     }
                     if (streamingVis.MouseSelectOutput(_mouseDownPos, out pin))
                     {
                         _wireCreator = new OutputWireCreator(streamingVis, pin, EmploymentMatrix);
-                        Childrens.Add(_wireCreator.Wire);
+                        Childrens.Insert(0,_wireCreator.Wire);
                         return;
                     }
 
@@ -120,7 +120,7 @@ namespace LinearCodes
 
         public void MouseMove(Vector2 mouseFieldPos)
         {
-            
+            return;
             var newPos = ToDiscret(mouseFieldPos);
             if (SelectRectangle.IsVisible)
             {
@@ -252,6 +252,19 @@ namespace LinearCodes
             }
         }
 
-       
+
+        public void KeyDownRemove()
+        {
+            for (int i = 0; i < StreamingComponents.Count; i++)
+            {
+                var streamingVis = StreamingComponents[i];
+                if (streamingVis.IsSelect)
+                {
+                    StreamingComponents.RemoveAt(i);
+                    i--;
+                    Childrens.Remove(streamingVis);
+                }
+            }
+        }
     }
 }

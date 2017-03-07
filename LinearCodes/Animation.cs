@@ -8,21 +8,186 @@ using OpenTK.Graphics;
 
 namespace LinearCodes
 {
+   
+
     public static class AnimationStatic
     {
                
         private static readonly List<AnimationBase> AnimationList = new List<AnimationBase>();
-        
+
+        private static readonly List<AnimationBaseLambda> AnimationLambdaList = new List<AnimationBaseLambda>();
+
+        public static void NextFrameLambda(double ms)
+        {
+           
+
+            if (!AnimationLambdaList.Any()) return;
+
+            for (int i = 0, count = AnimationLambdaList.Count; i < count; i++)
+            {
+                AnimationLambdaList[i].OnDraw(ms);
+                
+            }
+            AnimationLambdaList.RemoveAll(x => x.Finished);
+           
+        }
+
         public static void NextFrame(double ms)
         {
-            if (!AnimationList.Any()) return;
+             if (!AnimationList.Any()) return;
 
-            for (int i = 0; i < AnimationList.Count; i++)
-            {
-                AnimationList[i].OnDraw(ms);
-            }
-            AnimationList.RemoveAll(x => x.Finished);
+             for (int i = 0, count = AnimationList.Count; i < count; i++)
+             {
+                 AnimationList[i].OnDraw(ms);
+                 if (AnimationList[i].Finished)
+                 {
+                     AnimationList.RemoveAt(i);
+                     i--; count--;
+                 }
+             }
         }
+
+
+        public static void Animation<TObj>(this TObj obj, float old, float n, Action<TObj, float> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, int old, int n, Action<TObj, int> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, double old, double n, Action<TObj, double> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Vector2d old, Vector2d n, Action<TObj, Vector2d> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Vector3d old, Vector3d n, Action<TObj, Vector3d> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Color old, Color n, Action<TObj, Color> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Color4 old, Color4 n, Action<TObj, Color4> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Matrix4 old, Matrix4 n, Action<TObj, Matrix4> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Vector4 old, Vector4 n, Action<TObj, Vector4> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+        public static void Animation<TObj>(this TObj obj, Vector2 old, Vector2 n, Action<TObj, Vector2> setter,
+            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+
+
+        public static void Animation<TObj, TParam>(this TObj obj, TParam old, TParam n, Action<TObj, TParam> setter,
+            double duration, Func<TParam, TParam, double, TParam> aniFunc, Action act = null)
+        {
+
+            AnimationBaseLambda ani = new AnimationBaseLambda<TObj, TParam>(obj, old, n, setter, duration, aniFunc, act);
+            AnimationLambdaList.Add(ani);
+        }
+
+        public abstract class AnimationBaseLambda
+        {
+            public Action Action;
+            public bool Finished { get; protected set; }
+            public double Duration { get; }
+            public double Now { get; protected set; }
+
+            protected AnimationBaseLambda(double duration, Action action)
+            {
+                Action = action;
+                Duration = duration;
+                Now = 0;
+            }
+
+            public abstract void OnDraw(double ms);
+        }
+
+        public class AnimationBaseLambda<TObj, TParam>: AnimationBaseLambda
+        {
+            protected readonly TObj Obj;
+            
+            private readonly TParam _new;
+            protected TParam _old;
+
+            private readonly Func<TParam, TParam, double, TParam> _aniFunc;
+            private readonly Action<TObj, TParam> _setter;
+
+            public AnimationBaseLambda(TObj obj, TParam old, TParam n, 
+                Action<TObj, TParam> setter, 
+                double duration, 
+                Func<TParam, TParam, double, TParam> aniFunc, 
+                Action action): base (duration, action)
+            {
+                Obj = obj;
+                _aniFunc = aniFunc;
+                _new = n;
+                _old = old;
+                _setter = setter;
+            }
+
+            public override void OnDraw(double ms)
+            {
+                Now += ms;
+                if (Now >= Duration)
+                {
+                    Finished = true;
+                    _setter(Obj, _aniFunc(_old, _new, 1));
+                    Action?.Invoke();
+                    return;
+                }
+                _setter(Obj, _aniFunc(_old, _new, Now / Duration));
+
+            }
+
+        }
+
+
+
+
+        public static void Animation(this object o, string name, float n, uint frameCount, Action act = null)
+        {
+            Type objType = o.GetType();
+            PropertyInfo property = objType.GetProperty(name);
+            AnimationBase ani = null;
+            if (property != null)
+            {
+                ani = new AnimationBaseProperty<float>(o, property, n, frameCount, AnimationFunc, act);
+            }
+            else
+            {
+                FieldInfo filed = objType.GetField(name);
+                if (filed != null)
+                {
+                    ani = new AnimationBaseField<float>(o, filed, n, frameCount, AnimationFunc, act);
+                }
+            }
+            
+            AddAnimationBase(ani);
+        }
+
+        public static void Animation(this object o, string name, double n, uint frameCount, Action act = null)
+        {
+            Type objType = o.GetType();
+            PropertyInfo property = objType.GetProperty(name);
+            AnimationBase ani = null;
+            if (property != null)
+            {
+                ani = new AnimationBaseProperty<double>(o, property, n, frameCount, AnimationFunc, act);
+            }
+            else
+            {
+                FieldInfo filed = objType.GetField(name);
+                if (filed != null)
+                {
+                    ani = new AnimationBaseField<double>(o, filed, n, frameCount, AnimationFunc, act);
+                }
+            }
+
+            AddAnimationBase(ani);
+        }
+
 
         public static void Animation<T>(this object o, string name, T n, uint frameCount, Action act = null)
         {
@@ -36,7 +201,8 @@ namespace LinearCodes
 
             if (property != null)
             {
-
+                
+                
                 if (tType == typeof (float))
                 {
                     ani = new AnimationBaseProperty<float>(o, property,
@@ -145,21 +311,28 @@ namespace LinearCodes
                     }
                 }
             }
+            
+            AddAnimationBase(ani);
 
-            int animationIndex = AnimationList.FindIndex(x => x.Find(o, name));
+
+        }
+
+        private static void AddAnimationBase(AnimationBase ani)
+        {
             if (ani != null)
             {
+                int animationIndex = AnimationList.IndexOf(ani);
                 if (animationIndex >= 0)
                 {
-                    AnimationList[animationIndex].Action?.Invoke();
                     AnimationList[animationIndex] = ani;
                 }
                 else
                     AnimationList.Add(ani);
             }
-
-
         }
+
+      
+
 
         private static float AnimationFunc(float old, float n, double proportion)
         {
@@ -218,20 +391,22 @@ namespace LinearCodes
             return old + (n - old) * (float)proportion;
         }
 
-        private static T AnimationFunc<T>(T old, T n, double proportion)
-        {
-            throw new NotImplementedException();
-        }
 
-        public abstract class AnimationBase
+
+
+      
+
+        public abstract class AnimationBase: IEquatable<AnimationBase>
         {
             public Action Action; 
 
             protected readonly object Obj;
-            public bool Finished { get; protected set; } = false;
+            public bool Finished { get; protected set; }
             public double Duration { get; }
             public double Now { get; protected set; }
             protected abstract string Name { get; }
+
+
 
             protected AnimationBase(object obj, double duration, Action action)
             {
@@ -246,6 +421,29 @@ namespace LinearCodes
             public bool Find(object obj, string name)
             {
                 return obj == Obj && name == Name;
+            }
+
+            public bool Equals(AnimationBase other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return Equals(Obj, other.Obj) && string.Equals(Name, other.Name);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != GetType()) return false;
+                return Equals((AnimationBase) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return ((Obj?.GetHashCode() ?? 0) * 397) ^ (Name?.GetHashCode() ?? 0);
+                }
             }
         }
 
@@ -269,17 +467,15 @@ namespace LinearCodes
             public override void OnDraw(double ms)
             {
                 Now += ms;
-                
-                double proportion = Now/Duration;
-                if (proportion >= 1)
+               
+                if (Now >= Duration)
                 {
                     Finished = true;
-                    proportion = 1;
-                    Value = _aniFunc(_old, _new, proportion);
+                    Value = _aniFunc(_old, _new, 1);
                     Action?.Invoke();
                     return;
                 }
-                Value = _aniFunc(_old, _new, proportion);
+                Value = _aniFunc(_old, _new, Now / Duration);
 
             }
         }

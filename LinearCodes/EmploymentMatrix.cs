@@ -94,13 +94,6 @@ namespace LinearCodes
 
         }
 
-        public enum Direction
-        {
-            Left = 0,
-            Up = 1,
-            Right = 2,
-            Down = 3
-        }
 
         
         public int GetX(float x)

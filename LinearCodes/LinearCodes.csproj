@@ -71,8 +71,14 @@
     <Compile Include="Glyph7x5.cs" />
     <Compile Include="InseparableCode.cs" />
     <Compile Include="MatrixToVisual.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="RadialMenu.cs" />
     <Compile Include="SimpleShader.cs" />
+    <Compile Include="SpriteLibrary.cs" />
     <Compile Include="Streamings\StreamingComponent.cs" />
     <Compile Include="Streamings\StreamingReceiver.cs" />
     <Compile Include="Streamings\StreamingRegister.cs" />
@@ -85,6 +91,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
+    <Compile Include="TestVisualObject.cs" />
+    <Compile Include="Textured\TextureShader.cs" />
     <Compile Include="Uniform.cs" />
     <Compile Include="VisualObject.cs" />
     <Compile Include="VisualUniforms.cs" />
@@ -97,6 +105,23 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Shaders\SimpleFragmentShader.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\SimpleVertexShader.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\TexturedFragmentShader.glsl" />
+    <None Include="Shaders\TexturedVertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\bitmap.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

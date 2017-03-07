@@ -46,14 +46,10 @@ namespace LinearCodes.Creator
         {
             var path = new List<Vector2>();
 
-            var delta =  LastPoint - FirstPoint;
-            Vector2 lastPoint = EmploymentMatrix.GoToWall(FirstPoint, 
-                Math.Abs(delta.X) > Math.Abs(delta.Y) 
-                    ? new Vector2(delta.X, 0) 
-                    : new Vector2(0, delta.Y));
+
             Wire.AnimatedPath = new List<Vector2> {
                         FirstPoint ,
-                        lastPoint};
+                        LastPoint};
         }
 
         public abstract void Connecting();
