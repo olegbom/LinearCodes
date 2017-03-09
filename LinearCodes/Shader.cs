@@ -77,6 +77,11 @@ namespace LinearCodes
             return uniform;
         }
 
+        public Uniform<int> GetUniformInt(string name)
+        {
+            return new Uniform<int>(name, this, GL.Uniform1);
+        }
+
         public Uniform<Matrix4> GetUniformMatrix4(string name)
         {
             return new Uniform<Matrix4>(name, this, 
@@ -97,8 +102,7 @@ namespace LinearCodes
 
         public Uniform<Color4> GetUniformColor4(string name)
         {
-            return new Uniform<Color4>(name, this, 
-                (id, v) => GL.Uniform4(id, v));
+            return new Uniform<Color4>(name, this, GL.Uniform4);
         }
 
         

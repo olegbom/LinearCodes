@@ -50,7 +50,7 @@ namespace LinearCodes
 
 
         public Program()
-            : base(900, 700, new GraphicsMode(32, 24, 8, 8), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 3,3,GraphicsContextFlags.Default)
+            : base(900, 700, new GraphicsMode(32, 24, 8, 8,new ColorFormat(24),2,false), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 3,3,GraphicsContextFlags.Default)
         {
             
              //VSync = VSyncMode.On;
@@ -190,41 +190,17 @@ namespace LinearCodes
 
             };
 
-
-
-           
-
-
-            myStopwatch.Restart();
-            MyTestClass[] myTestClasses = new MyTestClass[10000];
-            for (int i = 0; i < 10000; i++)
-            {
-                myTestClasses[i]= new MyTestClass();
-                
-                myTestClasses[i].Animation(myTestClasses[i].Value, 1000, (o, p) => o.Value = p, 10000-i/100 + 100);
-                //myTestClasses[i].Animation("Value", 1000, 30000);
-            }
-            myStopwatch.Stop();
-            Console.WriteLine($"10000 objects animation {myStopwatch.ElapsedMilliseconds} ms");
-
-
-
-
-
+            
             Timer timer = new Timer(1000);
             timer.Elapsed += (s, a) =>
             {
-                Console.WriteLine($"FPS: {RenderFrequency:F2}, grad = {grad:F2}, {myTestClasses[5545].Value}");
+                Console.WriteLine($"FPS: {RenderFrequency:F2}, grad = {grad:F2}");
             };
             timer.AutoReset = true;
             timer.Start();
         }
 
-        class MyTestClass
-        {
-            public int Value { get; set; }
-            public bool TestBool;
-        }
+      
 
         private Vector2 PointToMouseCoord(Point point) => new Vector2(point.X, Height - point.Y);
         private Vector2 PositionToFieldCoord(Vector2 vec) => (vec + Translate)/Scale;
@@ -284,8 +260,8 @@ namespace LinearCodes
             myStopwatch.Restart();
             AnimationStatic.NextFrame(e.Time * 1000);
             AnimationStatic.NextFrameLambda(e.Time * 1000);
-            myStopwatch.Stop();
-            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}, animation delay = {myStopwatch.ElapsedMilliseconds} ms";
+           
+           
 
 
             grad += e.Time * 10;
@@ -293,7 +269,7 @@ namespace LinearCodes
             //   GL.LoadIdentity();
 
            
-            //Field.Draw();
+            Field.Draw();
             InseparableCode.Draw();
             menu.Draw();
             
@@ -309,6 +285,8 @@ namespace LinearCodes
             //  GL.DrawArrays(PrimitiveType.TriangleStrip, 0, Visual.Count);
 
             SwapBuffers();
+            myStopwatch.Stop();
+            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}, animation delay = {myStopwatch.ElapsedMilliseconds} ms";
         }
 
 
@@ -324,7 +302,7 @@ namespace LinearCodes
                 // Get the title and category  of this example using reflection.
 
                 program.Title = "Линейные коды";
-                program.Run(30.0,60);
+                program.Run(0,60);
 
             }
         }

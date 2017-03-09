@@ -16,6 +16,7 @@ namespace LinearCodes
         private static readonly List<AnimationBase> AnimationList = new List<AnimationBase>();
 
         private static readonly List<AnimationBaseLambda> AnimationLambdaList = new List<AnimationBaseLambda>();
+       
 
         public static void NextFrameLambda(double ms)
         {
@@ -26,10 +27,10 @@ namespace LinearCodes
             for (int i = 0, count = AnimationLambdaList.Count; i < count; i++)
             {
                 AnimationLambdaList[i].OnDraw(ms);
-                
             }
             AnimationLambdaList.RemoveAll(x => x.Finished);
-           
+
+
         }
 
         public static void NextFrame(double ms)
@@ -48,77 +49,111 @@ namespace LinearCodes
         }
 
 
-        public static void Animation<TObj>(this TObj obj, float old, float n, Action<TObj, float> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, float old, float n, Action<TObj, float> setter, string paramName, 
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration,  AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, int old, int n, Action<TObj, int> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, int old, int n, Action<TObj, int> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, double old, double n, Action<TObj, double> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, double old, double n, Action<TObj, double> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Vector2d old, Vector2d n, Action<TObj, Vector2d> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Vector2d old, Vector2d n, Action<TObj, Vector2d> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Vector3d old, Vector3d n, Action<TObj, Vector3d> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Vector3d old, Vector3d n, Action<TObj, Vector3d> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Color old, Color n, Action<TObj, Color> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Color old, Color n, Action<TObj, Color> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Color4 old, Color4 n, Action<TObj, Color4> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Color4 old, Color4 n, Action<TObj, Color4> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Matrix4 old, Matrix4 n, Action<TObj, Matrix4> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Matrix4 old, Matrix4 n, Action<TObj, Matrix4> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Vector4 old, Vector4 n, Action<TObj, Vector4> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Vector4 old, Vector4 n, Action<TObj, Vector4> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
-        public static void Animation<TObj>(this TObj obj, Vector2 old, Vector2 n, Action<TObj, Vector2> setter,
-            double duration, Action action = null) => obj.Animation(old, n, setter, duration, AnimationFunc, action);
+        public static void Animation<TObj>(this TObj obj, Vector2 old, Vector2 n, Action<TObj, Vector2> setter, string paramName,
+            double duration, Action action = null) => obj.Animation(old, n, setter, paramName, duration, AnimationFunc, action);
 
 
-        public static void Animation<TObj, TParam>(this TObj obj, TParam old, TParam n, Action<TObj, TParam> setter,
+        public static void Animation<TObj, TParam>(this TObj obj, TParam old, TParam n, Action<TObj, TParam> setter, string paramName,
             double duration, Func<TParam, TParam, double, TParam> aniFunc, Action act = null)
         {
 
-            AnimationBaseLambda ani = new AnimationBaseLambda<TObj, TParam>(obj, old, n, setter, duration, aniFunc, act);
-            AnimationLambdaList.Add(ani);
+            AnimationBaseLambda ani = new AnimationBaseLambda<TObj, TParam>(obj, old, n, setter, paramName, duration, aniFunc, act);
+            int animationIndex = AnimationLambdaList.IndexOf(ani);
+            if (animationIndex >= 0)
+                AnimationLambdaList[animationIndex] = ani;
+            else
+                AnimationLambdaList.Add(ani);
+
         }
 
-        public abstract class AnimationBaseLambda
+        public abstract class AnimationBaseLambda: IEquatable<AnimationBaseLambda>
         {
+            public abstract object RefObj { get; }
+
             public Action Action;
             public bool Finished { get; protected set; }
             public double Duration { get; }
             public double Now { get; protected set; }
 
-            protected AnimationBaseLambda(double duration, Action action)
+            public string ParamName { get; }
+
+            protected AnimationBaseLambda(string paramName, double duration, Action action)
             {
                 Action = action;
                 Duration = duration;
+                ParamName = paramName;
                 Now = 0;
             }
 
             public abstract void OnDraw(double ms);
+
+            public bool Equals(AnimationBaseLambda other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return ReferenceEquals(RefObj, other.RefObj) && string.Equals(ParamName, other.ParamName);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((AnimationBaseLambda) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return ((RefObj?.GetHashCode() ?? 0) * 397) ^ (ParamName?.GetHashCode() ?? 0);
+            }
         }
 
-        public class AnimationBaseLambda<TObj, TParam>: AnimationBaseLambda
+        public class AnimationBaseLambda<TObj, TParam>: AnimationBaseLambda, IEquatable<AnimationBaseLambda<TObj, TParam>>
         {
             protected readonly TObj Obj;
-            
+
+            public override object RefObj => Obj;
+
             private readonly TParam _new;
             protected TParam _old;
 
             private readonly Func<TParam, TParam, double, TParam> _aniFunc;
             private readonly Action<TObj, TParam> _setter;
+            
 
             public AnimationBaseLambda(TObj obj, TParam old, TParam n, 
                 Action<TObj, TParam> setter, 
+                string paramName,
                 double duration, 
                 Func<TParam, TParam, double, TParam> aniFunc, 
-                Action action): base (duration, action)
+                Action action): base (paramName, duration, action)
             {
                 Obj = obj;
                 _aniFunc = aniFunc;
@@ -141,6 +176,31 @@ namespace LinearCodes
 
             }
 
+            public bool Equals(AnimationBaseLambda<TObj, TParam> other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return base.Equals(other) && EqualityComparer<TObj>.Default.Equals(Obj, other.Obj) && EqualityComparer<TParam>.Default.Equals(_old, other._old);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((AnimationBaseLambda<TObj, TParam>) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hashCode = base.GetHashCode();
+                    hashCode = (hashCode * 397) ^ EqualityComparer<TObj>.Default.GetHashCode(Obj);
+                    hashCode = (hashCode * 397) ^ EqualityComparer<TParam>.Default.GetHashCode(_old);
+                    return hashCode;
+                }
+            }
         }
 
 
