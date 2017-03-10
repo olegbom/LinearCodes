@@ -41,5 +41,6 @@ namespace LinearCodes.Textured
             GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
             GL.BindVertexArray(0);
         }
+
     }
 }

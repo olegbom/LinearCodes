@@ -18,8 +18,8 @@ namespace LinearCodes.Textured
         public PixelFormat ImageFormat = PixelFormat.Bgra;
         public int WrapS = (int)TextureWrapMode.Repeat;
         public int WrapT = (int)TextureWrapMode.Repeat;
-        public int FilterMin = (int) TextureMinFilter.Linear;
-        public int FilterMag = (int) TextureMagFilter.Linear;
+        public int FilterMin = (int) TextureMinFilter.LinearMipmapLinear;
+        public int FilterMag = (int) TextureMagFilter.Nearest;
 
 
         public Texture2D()
@@ -39,7 +39,7 @@ namespace LinearCodes.Textured
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, WrapT);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, FilterMin);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, FilterMag);
-
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 

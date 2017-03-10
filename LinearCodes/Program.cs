@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq.Expressions;
@@ -20,7 +21,7 @@ namespace LinearCodes
         private SimpleShader SimpleShader;
         private TextureShader TextureShader;
         private Texture2D MyTexture2D;
-        private Sprite MySprite;
+        private List<Sprite> MySprites = new List<Sprite>();
 
         public RadialMenu menu;
 
@@ -54,10 +55,10 @@ namespace LinearCodes
 
 
         public Program()
-            : base(900, 700, new GraphicsMode(32, 24, 8, 8,new ColorFormat(24),2,false), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 3,3,GraphicsContextFlags.Default)
+            : base(900, 700, new GraphicsMode(32, 0, 0, 24), "Titul", GameWindowFlags.Default, DisplayDevice.Default, 3,3,GraphicsContextFlags.Default)
         {
             
-             //VSync = VSyncMode.On;
+             VSync = VSyncMode.On;
             // Timer timer = new Timer(1000);
             // timer.Elapsed += (s, e) => Console.WriteLine($"FPS: {RenderFrequency:F2}");
             // timer.Start();
@@ -74,10 +75,20 @@ namespace LinearCodes
             TextureShader.UniformSampler2D.Value = 0;
             MyTexture2D = new Texture2D();
             MyTexture2D.Generate(new Bitmap("Resources\\bitmap.png"));
-            MySprite = new Sprite(MyTexture2D, new SpriteRenderer(), TextureShader);
-            MySprite.TexturePostiton = new Vector4(0.0f,0.0f,1.0f,1.0f);
-            MySprite.Size = new Vector2(512, 512*0.5f);
-            MySprite.UpdateUniforms();
+            var spriteRenderer = new SpriteRenderer();
+            Random r = new Random();
+            for (int i = 0; i < 50; i++)
+            {
+                for (int j = 0; j < 50; j++)
+                {
+                    var mySprite = new SpriteRegister(MyTexture2D, spriteRenderer, TextureShader);
+                    mySprite.Position = new Vector2(50*i,50*j);
+                    mySprite.UpdateModelMatrix();
+                    mySprite.Color = new Color4((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1f);
+                    MySprites.Add(mySprite);
+                }
+            }
+          
 
             InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} , SimpleShader);
             //LinearMachine =new MatrixToVisual(new[,]
@@ -111,8 +122,7 @@ namespace LinearCodes
             SimpleShader.UniformModelMatrix.Value = new Matrix3x2(1, 0, 0, 1, 0, 0);
             
 
-            Random r = new Random();
-
+            
             Vector2 coordMouseDown = new Vector2(0,0);
             bool mouseScrollClicked = false;
             Vector2 oldTranslate = Translate;
@@ -177,17 +187,18 @@ namespace LinearCodes
             {
                 Vector2 mousePos = new Vector2(a.Position.X, Height - a.Position.Y);
                 
-                var max = 2.0f;
-                var min = 1.0f;
+                var max = 4.0f;
+                var min = 0.25f;
 
-                float newScale = Scale * (1+ 0.1f * a.Delta);
+                float newScale = Scale + 0.25f * a.Delta/2;
                 if (newScale > max) newScale = max;
                 if (newScale < min) newScale = min;
+                
                 var newTranslate = (mousePos + Translate)*newScale/Scale - mousePos;
                 Translate = new Vector2((int)newTranslate.X,(int)newTranslate.Y);
 
                 Scale = newScale;
-                //this.Animation("Scale", newScale, 200);
+                //this.Animation("Scale", newScale, 100);
             };
 
             
@@ -211,7 +222,7 @@ namespace LinearCodes
                 Console.WriteLine($"FPS: {RenderFrequency:F2}, grad = {grad:F2}");
             };
             timer.AutoReset = true;
-            timer.Start();
+            //timer.Start();
         }
 
       
@@ -256,9 +267,9 @@ namespace LinearCodes
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
 
-            
-            
-            
+            grad += e.Time * 10;
+
+
             //    for (int i = 0; i < 600; i++)
             {
                //Visual.DrawLine(i * 6, new Vector2(20 + i * 2, 20), new Vector2(200 + i * 1.3f + (float)Math.Sin(grad*0.1)*10, 200), Color.Black, Color.Brown);
@@ -278,20 +289,26 @@ namespace LinearCodes
             myStopwatch.Restart();
             AnimationStatic.NextFrame(e.Time * 1000);
             AnimationStatic.NextFrameLambda(e.Time * 1000);
-            MySprite.Rotate = (float)grad / 100;
-            MySprite.UpdateUniforms();
+            foreach (var mySprite in MySprites)
+            {
+                mySprite.Rotate = (float)grad / 30 +  mySprite.Position.Y/100*mySprite.Position.X/100* (float)grad / 300;
+                mySprite.UpdateModelMatrix();
+            }
+            
 
 
-            grad += e.Time * 10;
+            
             GL.Clear(ClearBufferMask.ColorBufferBit);
             //   GL.LoadIdentity();
             GL.Enable(EnableCap.Texture2D);
-            MySprite.Draw();
+            foreach (var mySprite in MySprites)
+                mySprite.Draw();
             GL.Disable(EnableCap.Texture2D);
-          //  Field.Draw();
-          //  InseparableCode.Draw();
-          //  menu.Draw();
-            
+
+            //  Field.Draw();
+            //  InseparableCode.Draw();
+            //  menu.Draw();
+
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), IntPtr.Zero, BufferUsageHint.StreamDraw);
             //// Fill newly allocated buffer
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), VBO, BufferUsageHint.StreamDraw);
@@ -305,9 +322,9 @@ namespace LinearCodes
 
             SwapBuffers();
             myStopwatch.Stop();
-            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}, animation delay = {myStopwatch.ElapsedMilliseconds} ms";
+            Title = $"FPS: {RenderFrequency:F2}, grad = {grad:F2}, scale  = {Scale:F2}x";
         }
-
+        
 
 
         /// <summary>
@@ -321,7 +338,7 @@ namespace LinearCodes
                 // Get the title and category  of this example using reflection.
 
                 program.Title = "Линейные коды";
-                program.Run(0,60);
+                program.Run(0.016666666666666666);
 
             }
         }

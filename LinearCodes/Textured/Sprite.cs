@@ -20,6 +20,8 @@ namespace LinearCodes.Textured
         public float Rotate { get; set; }
         public Color4 Color { get; set; } = Color4.White;
         public Vector4 TexturePostiton { get; set; }
+        private Matrix4 _modelMatrix4;
+
 
         public Sprite(Texture2D texture, SpriteRenderer renderer, TextureShader shader)
         {
@@ -31,26 +33,27 @@ namespace LinearCodes.Textured
         public void Draw()
         {
             Shader.Use();
+            Shader.UniformModelMatrix.Value = _modelMatrix4;
+            Shader.UniformTexturePos.Value = TexturePostiton;
+            Shader.UniformColor.Value = Color;
             GL.ActiveTexture(TextureUnit.Texture0);
             Texture2D.Bind();
             Renderer.Draw();
         }
 
-        public void UpdateUniforms()
+
+        public void UpdateModelMatrix()
         {
-            Matrix4 model = Matrix4.CreateTranslation(Position.X, Position.Y, 0);
+            
 
             Vector3 divSize = new Vector3(Size/2f);
 
-            
-            model *= Matrix4.CreateRotationZ(Rotate);
-            
-            model *= Matrix4.CreateScale(Size.X, Size.Y, 1f);
+            _modelMatrix4 = Matrix4.CreateScale(Size.X, Size.Y, 1f);
 
-            Shader.UniformModelMatrix.Value = model;
-            Shader.UniformTexturePos.Value = TexturePostiton;
-            Shader.UniformColor.Value = Color;
-
+            _modelMatrix4 *= Matrix4.CreateTranslation(-divSize);
+            _modelMatrix4 *= Matrix4.CreateRotationZ(Rotate);
+            _modelMatrix4 *= Matrix4.CreateTranslation(divSize);
+            _modelMatrix4 *= Matrix4.CreateTranslation(Position.X, Position.Y, 0);
         }
     }
 }

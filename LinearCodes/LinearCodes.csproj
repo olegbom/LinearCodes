@@ -78,6 +78,7 @@
     </Compile>
     <Compile Include="RadialMenu.cs" />
     <Compile Include="SimpleShader.cs" />
+    <Compile Include="Textured\SpriteRegister.cs" />
     <Compile Include="Streamings\StreamingComponent.cs" />
     <Compile Include="Streamings\StreamingReceiver.cs" />
     <Compile Include="Streamings\StreamingRegister.cs" />
