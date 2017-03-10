@@ -9,6 +9,6 @@ uniform vec4 texturePos; //<x, y, width, height>
 
 void main()
 {
-    TexCoords = vertex.zw;
-    gl_Position = projection * model * vec4(texturePos.xy + vertex.xy*texturePos.zw, 0.0, 1.0);
+    TexCoords = texturePos.xy + vertex.zw * texturePos.zw;
+    gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
 }

@@ -78,7 +78,6 @@
     </Compile>
     <Compile Include="RadialMenu.cs" />
     <Compile Include="SimpleShader.cs" />
-    <Compile Include="SpriteLibrary.cs" />
     <Compile Include="Streamings\StreamingComponent.cs" />
     <Compile Include="Streamings\StreamingReceiver.cs" />
     <Compile Include="Streamings\StreamingRegister.cs" />
@@ -92,6 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="TestVisualObject.cs" />
+    <Compile Include="Textured\Sprite.cs" />
     <Compile Include="Textured\SpriteRenderer.cs" />
     <Compile Include="Textured\Texture2D.cs" />
     <Compile Include="Textured\TextureShader.cs" />
@@ -113,8 +113,12 @@
     <None Include="Shaders\SimpleVertexShader.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\TexturedFragmentShader.glsl" />
-    <None Include="Shaders\TexturedVertexShader.glsl" />
+    <None Include="Shaders\TexturedFragmentShader.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\TexturedVertexShader.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

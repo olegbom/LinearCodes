@@ -3,8 +3,6 @@ using OpenTK;
 
 namespace LinearCodes
 {
-
-
     public abstract class VisualObject
     {
         public virtual Matrix3x2 ModelMatrix { get; protected set; } = new Matrix3x2(1, 0, 0, 1, 0, 0);

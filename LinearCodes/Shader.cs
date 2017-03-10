@@ -53,8 +53,11 @@ namespace LinearCodes
             if (infoLogLength > 0)
                 Console.WriteLine(GL.GetProgramInfoLog(ProgramId));
         }
-        
 
+        public void Use()
+        {
+            GL.UseProgram(ProgramId);
+        }
 
         public int GetAttribLocation(string name)
         {
@@ -79,7 +82,7 @@ namespace LinearCodes
 
         public Uniform<int> GetUniformInt(string name)
         {
-            return new Uniform<int>(name, this, GL.Uniform1);
+            return new Uniform<int>(name, this, (id, v) => GL.Uniform1(id, v));
         }
 
         public Uniform<Matrix4> GetUniformMatrix4(string name)
@@ -102,7 +105,7 @@ namespace LinearCodes
 
         public Uniform<Color4> GetUniformColor4(string name)
         {
-            return new Uniform<Color4>(name, this, GL.Uniform4);
+            return new Uniform<Color4>(name, this, (id, v) =>GL.Uniform4(id,v));
         }
 
         

@@ -11,29 +11,15 @@ namespace LinearCodes.Textured
     {
         private int _quadVao;
 
-        private TextureShader _shader;
-
-
-
-        public SpriteRenderer(TextureShader shader)
-        {
-            _shader = shader;
-        }
-
-
-
-        public void InitRenderData()
+        public SpriteRenderer()
         {
             int VBO;
             float[] vertices =
             {
-                0f, 1f, 0f, 1f,
-                1f, 0f, 1f, 0f,
-                0f, 0f, 0f, 0f,
-
-                0f, 1f, 0f, 1f,
-                1f, 1f, 1f, 1f,
-                1f, 0f, 1f, 0f
+                1f, 1f, 1f, 0f,
+                1f, 0f, 1f, 1f,
+                0f, 1f, 0f, 0f,
+                0f, 0f, 0f, 1f,
             };
 
             _quadVao = GL.GenVertexArray();
@@ -46,6 +32,13 @@ namespace LinearCodes.Textured
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 4*sizeof(float), 0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
+        }
+
+        public void Draw()
+        {
+            GL.BindVertexArray(_quadVao);
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
             GL.BindVertexArray(0);
         }
     }

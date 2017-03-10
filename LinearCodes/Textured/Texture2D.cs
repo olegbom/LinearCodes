@@ -14,8 +14,8 @@ namespace LinearCodes.Textured
     public class Texture2D
     {
         public int Id { get; }
-        public PixelInternalFormat InternalFormat = PixelInternalFormat.Rgb;
-        public PixelFormat ImageFormat = PixelFormat.Rgb;
+        public PixelInternalFormat InternalFormat = PixelInternalFormat.Rgba;
+        public PixelFormat ImageFormat = PixelFormat.Bgra;
         public int WrapS = (int)TextureWrapMode.Repeat;
         public int WrapT = (int)TextureWrapMode.Repeat;
         public int FilterMin = (int) TextureMinFilter.Linear;
@@ -32,7 +32,7 @@ namespace LinearCodes.Textured
             BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-            GL.BindTexture(TextureTarget.Texture2D, Id);
+            Bind();
             GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat, data.Width, data.Height, 0, ImageFormat, PixelType.UnsignedByte, data.Scan0);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, WrapS);

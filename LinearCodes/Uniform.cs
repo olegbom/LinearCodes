@@ -32,6 +32,7 @@ namespace LinearCodes
             Shader = shader;
 
             Id = GL.GetUniformLocation(shader.ProgramId, name);
+            if(Id<0) Console.WriteLine($"{name} uniform not found");
         }
     }
 }

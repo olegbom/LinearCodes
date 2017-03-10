@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq.Expressions;
 using System.Timers;
+using LinearCodes.Textured;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -17,6 +18,9 @@ namespace LinearCodes
         private InseparableCode InseparableCode;
         private Field Field;
         private SimpleShader SimpleShader;
+        private TextureShader TextureShader;
+        private Texture2D MyTexture2D;
+        private Sprite MySprite;
 
         public RadialMenu menu;
 
@@ -65,6 +69,16 @@ namespace LinearCodes
 
 
             SimpleShader = new SimpleShader("Shaders\\SimpleVertexShader.glsl", "Shaders\\SimpleFragmentShader.glsl");
+
+            TextureShader = new TextureShader("Shaders\\TexturedVertexShader.glsl", "Shaders\\TexturedFragmentShader.glsl");
+            TextureShader.UniformSampler2D.Value = 0;
+            MyTexture2D = new Texture2D();
+            MyTexture2D.Generate(new Bitmap("Resources\\bitmap.png"));
+            MySprite = new Sprite(MyTexture2D, new SpriteRenderer(), TextureShader);
+            MySprite.TexturePostiton = new Vector4(0.0f,0.0f,1.0f,1.0f);
+            MySprite.Size = new Vector2(512, 512*0.5f);
+            MySprite.UpdateUniforms();
+
             InseparableCode = new InseparableCode(new[]{ true, true, true, false, true} , SimpleShader);
             //LinearMachine =new MatrixToVisual(new[,]
             //{
@@ -219,7 +233,11 @@ namespace LinearCodes
         {
             SimpleShader.UniformProjectionMatrix.Value = OrtographicMatrix3x2(Translate.X/Scale,
                 (Width + Translate.X)/Scale, Translate.Y/Scale, (Height + Translate.Y)/Scale);
-            
+
+            TextureShader.UniformProjectionMatrix.Value = Matrix4.CreateOrthographicOffCenter(Translate.X / Scale,
+               (Width + Translate.X) / Scale, Translate.Y / Scale, (Height + Translate.Y) / Scale, -1, 1);
+
+
         }
 
 
@@ -260,18 +278,19 @@ namespace LinearCodes
             myStopwatch.Restart();
             AnimationStatic.NextFrame(e.Time * 1000);
             AnimationStatic.NextFrameLambda(e.Time * 1000);
-           
-           
+            MySprite.Rotate = (float)grad / 100;
+            MySprite.UpdateUniforms();
 
 
             grad += e.Time * 10;
             GL.Clear(ClearBufferMask.ColorBufferBit);
             //   GL.LoadIdentity();
-
-           
-            Field.Draw();
-            InseparableCode.Draw();
-            menu.Draw();
+            GL.Enable(EnableCap.Texture2D);
+            MySprite.Draw();
+            GL.Disable(EnableCap.Texture2D);
+          //  Field.Draw();
+          //  InseparableCode.Draw();
+          //  menu.Draw();
             
             //GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexC4ubV3f.SizeInBytes * MaxParticleCount), IntPtr.Zero, BufferUsageHint.StreamDraw);
             //// Fill newly allocated buffer

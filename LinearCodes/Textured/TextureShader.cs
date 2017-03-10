@@ -17,7 +17,7 @@ namespace LinearCodes.Textured
         {
             UniformProjectionMatrix = GetUniformMatrix4("projection");
             UniformModelMatrix = GetUniformMatrix4("model");
-            UniformColor = GetUniformColor4("color");
+            UniformColor = GetUniformColor4("spriteColor");
             UniformSampler2D = GetUniformInt("image");
             UniformTexturePos = GetUniformVector4("texturePos");
         }
